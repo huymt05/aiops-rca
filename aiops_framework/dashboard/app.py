@@ -15,7 +15,12 @@ from pydantic import BaseModel
 
 from aiops_framework.inference.orchestrator.clients import get_json, post_json
 from aiops_framework.inference.anomaly_service.schemas import WindowPredictResponse
+from aiops_framework.inference.common.artifact_registry import (
+    get_model_summary,
+    promote_model,
+)
 from aiops_framework.inference.rca_service.schemas import GraphPredictResponse, RankedNode
+from aiops_framework.core.config import load_system_config
 from aiops_framework.registry.system_catalog import get_system, list_systems
 
 from .auth import (
@@ -131,6 +136,13 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+class PromoteModelRequest(BaseModel):
+    system_id: str
+    model_type: str
+    model_name: str
+    notes: str = ""
+
+
 RECOVERY_HISTORY: list[dict[str, Any]] = []
 
 
@@ -209,6 +221,26 @@ def _system_namespace(system_id: str) -> str:
     if not namespace:
         raise HTTPException(status_code=400, detail=f"System {system_id} has no namespace configured")
     return namespace
+
+
+def _system_model_root(system_id: str, model_type: str) -> Path:
+    cfg = load_system_config(system_id)
+    profile = cfg.get("model_profile", {}).get(model_type, {})
+    registry_root = profile.get("registry_root")
+    if not registry_root:
+        raise HTTPException(status_code=404, detail=f"System {system_id} has no {model_type} registry_root configured")
+
+    registry_path = Path(str(registry_root))
+    if not registry_path.is_absolute():
+        registry_path = (Path(cfg["system_root"]) / registry_path).resolve()
+    return registry_path
+
+
+def _model_registry_payload(system_id: str, model_type: str) -> dict[str, Any]:
+    models_root = _system_model_root(system_id, model_type)
+    summary = get_model_summary(models_root, system_id=system_id, model_type=model_type)
+    summary["models_root"] = str(models_root)
+    return summary
 
 
 def _kubectl(namespace: str, args: list[str]) -> subprocess.CompletedProcess[str]:
@@ -690,8 +722,76 @@ def record_feedback(
 
 
 @app.get("/api/audit-logs")
-def audit_logs(limit: int = 50, auth: AuthContext = Depends(require_permission("audit_view"))) -> dict[str, Any]:
-    return {"items": list_audit_logs(limit=limit)}
+def audit_logs(
+    limit: int = 50,
+    actor: str | None = None,
+    action: str | None = None,
+    system_id: str | None = None,
+    auth: AuthContext = Depends(require_permission("audit_view")),
+) -> dict[str, Any]:
+    return {
+        "items": list_audit_logs(limit=limit, actor=actor, action=action, system_id=system_id),
+        "filters": {"actor": actor, "action": action, "system_id": system_id},
+    }
+
+
+@app.get("/api/models")
+def models(system_id: str, auth: AuthContext = Depends(require_permission("model_select"))) -> dict[str, Any]:
+    try:
+        system = get_system(system_id)
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return {
+        "system_id": system_id,
+        "display_name": system.get("display_name", system_id),
+        "anomaly": _model_registry_payload(system_id, "anomaly"),
+        "rca": _model_registry_payload(system_id, "rca"),
+    }
+
+
+@app.post("/api/models/promote")
+def model_promote(
+    payload: PromoteModelRequest,
+    auth: AuthContext = Depends(require_permission("model_promote")),
+) -> dict[str, Any]:
+    model_type = payload.model_type.strip().lower()
+    if model_type not in {"anomaly", "rca"}:
+        raise HTTPException(status_code=400, detail=f"Unsupported model_type: {payload.model_type}")
+
+    models_root = _system_model_root(payload.system_id, model_type)
+    try:
+        path = promote_model(
+            models_root,
+            system_id=payload.system_id,
+            model_type=model_type,
+            model_name=payload.model_name,
+            promoted_by=auth.username,
+            notes=payload.notes.strip(),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    write_audit_log(
+        action="model.promote",
+        target_type=f"{model_type}_model",
+        target_id=payload.model_name,
+        actor=auth.username,
+        payload={
+            "system_id": payload.system_id,
+            "model_type": model_type,
+            "model_name": payload.model_name,
+            "notes": payload.notes.strip(),
+            "registry_path": str(path),
+        },
+    )
+    return {
+        "status": "ok",
+        "system_id": payload.system_id,
+        "model_type": model_type,
+        "model_name": payload.model_name,
+        "registry_path": str(path),
+    }
 
 
 @app.get("/api/logs/recent")

@@ -432,14 +432,48 @@ def save_feedback(
     }
 
 
-def list_audit_logs(limit: int = 50) -> list[dict[str, Any]]:
+def list_audit_logs(
+    limit: int = 50,
+    *,
+    actor: str | None = None,
+    action: str | None = None,
+    system_id: str | None = None,
+) -> list[dict[str, Any]]:
     init_store()
     limit = max(1, min(int(limit), 200))
     if _FALLBACK_TO_JSON:
-        return list(reversed(_read_state().get("audit_logs", [])))[:limit]
+        items = list(reversed(_read_state().get("audit_logs", [])))
+        if actor:
+            actor_filter = actor.strip().lower()
+            items = [item for item in items if str(item.get("actor", "")).strip().lower() == actor_filter]
+        if action:
+            action_filter = action.strip().lower()
+            items = [item for item in items if action_filter in str(item.get("action", "")).strip().lower()]
+        if system_id:
+            system_filter = system_id.strip().lower()
+            items = [
+                item for item in items
+                if str((item.get("payload") or {}).get("system_id", "")).strip().lower() == system_filter
+            ]
+        return items[:limit]
     with _connect() as conn:
-        rows = conn.execute("SELECT * FROM audit_logs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
-    return [
+        clauses: list[str] = []
+        params: list[Any] = []
+        if actor:
+            clauses.append("LOWER(actor) = ?")
+            params.append(actor.strip().lower())
+        if action:
+            clauses.append("LOWER(action) LIKE ?")
+            params.append(f"%{action.strip().lower()}%")
+
+        query = "SELECT * FROM audit_logs"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY id DESC LIMIT ?"
+        params.append(limit if system_id is None else max(limit * 4, limit))
+        rows = conn.execute(query, tuple(params)).fetchall()
+
+    items = [
         {
             "id": int(row["id"]),
             "created_at": row["created_at"],
@@ -451,6 +485,13 @@ def list_audit_logs(limit: int = 50) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+    if system_id:
+        system_filter = system_id.strip().lower()
+        items = [
+            item for item in items
+            if str((item.get("payload") or {}).get("system_id", "")).strip().lower() == system_filter
+        ]
+    return items[:limit]
 
 
 def count_users() -> int:

@@ -62,6 +62,8 @@
         <button type="button" class="nav-item" data-view="dashboard" data-scroll-target="healthSection"><span class="nav-icon">&#10003;</span><span class="nav-label">Health</span></button>
         <button type="button" class="nav-item" data-view="dashboard" data-scroll-target="resultSection"><span class="nav-icon">&#9888;</span><span class="nav-label">Incidents</span></button>
         <button type="button" class="nav-item" data-view="metadata"><span class="nav-icon">&#9776;</span><span class="nav-label">Metadata</span></button>
+        <button id="navModelManagement" type="button" class="nav-item hidden" data-view="model-management"><span class="nav-icon">&#9874;</span><span class="nav-label">Model Management</span></button>
+        <button id="navAuditLogs" type="button" class="nav-item hidden" data-view="audit-logs"><span class="nav-icon">&#35;</span><span class="nav-label">Audit Logs</span></button>
         <button id="navAccessControl" type="button" class="nav-item hidden" data-view="access-control"><span class="nav-icon">&#128274;</span><span class="nav-label">Access Control</span></button>
       </nav>
       <div class="sidebar-footer"><span class="sidebar-ver">v1.0.0</span></div>
@@ -72,6 +74,10 @@
         <div class="topbar-left">
           <span class="topbar-title">Online RCA Dashboard</span>
           <span class="topbar-sub">AIOps Runtime Demo - Microservices</span>
+          <label class="field topbar-system-field">
+            <span class="field-label">System</span>
+            <select id="systemSelect"></select>
+          </label>
         </div>
         <div class="topbar-right">
           <div class="topbar-stat">
@@ -122,11 +128,6 @@
                 </div>
                 <span class="panel-note">Sample and live sources</span>
               </div>
-
-              <label class="field">
-                <span class="field-label">System</span>
-                <select id="systemSelect"></select>
-              </label>
 
               <label class="field">
                 <span class="field-label">RCA Model</span>
@@ -256,6 +257,63 @@
             <span class="panel-note">Best current artifacts</span>
           </div>
           <pre id="metadataBox" class="json-box">Loading metadata...</pre>
+        </section>
+
+        <section class="panel model-panel view-panel hidden" data-view-panel="model-management">
+          <div class="panel-head">
+            <div class="panel-title-group">
+              <span class="panel-icon">&#9874;</span>
+              <h2 class="panel-title">Model Management</h2>
+            </div>
+            <span id="modelPanelNote" class="panel-note">Registry-backed production and candidate models</span>
+          </div>
+          <div id="modelManagementState" class="history-empty">Loading model registry...</div>
+          <div id="modelSummary" class="model-summary-grid"></div>
+          <div class="model-columns">
+            <div class="access-card">
+              <div class="history-head">
+                <span class="history-title">Anomaly Candidates</span>
+                <span class="history-note">top ranked candidates</span>
+              </div>
+              <div id="anomalyCandidates" class="model-card-list">
+                <div class="history-empty">No anomaly candidates loaded.</div>
+              </div>
+            </div>
+            <div class="access-card">
+              <div class="history-head">
+                <span class="history-title">RCA Candidates</span>
+                <span class="history-note">top ranked candidates</span>
+              </div>
+              <div id="rcaCandidates" class="model-card-list">
+                <div class="history-empty">No RCA candidates loaded.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel audit-panel view-panel hidden" data-view-panel="audit-logs">
+          <div class="panel-head">
+            <div class="panel-title-group">
+              <span class="panel-icon">&#35;</span>
+              <h2 class="panel-title">Audit Logs</h2>
+            </div>
+            <span id="auditPanelNote" class="panel-note">Recent authenticated actions and governance events</span>
+          </div>
+          <div class="audit-toolbar">
+            <label class="field audit-field">
+              <span class="field-label">User Filter</span>
+              <input id="auditFilterActor" class="text-input" type="text" placeholder="admin" />
+            </label>
+            <label class="field audit-field">
+              <span class="field-label">Action Filter</span>
+              <input id="auditFilterAction" class="text-input" type="text" placeholder="model.promote" />
+            </label>
+            <button id="auditRefreshButton" class="btn btn-ghost" type="button">Refresh</button>
+          </div>
+          <div id="auditLogState" class="history-empty">Loading audit log...</div>
+          <div id="auditLogList" class="audit-log-list">
+            <div class="history-empty">No audit events loaded yet.</div>
+          </div>
         </section>
 
         <section class="panel access-panel view-panel hidden" data-view-panel="access-control">

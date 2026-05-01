@@ -97,6 +97,8 @@ const accessRoleBadge = document.getElementById("accessRoleBadge");
 const accessSummaryBox = document.getElementById("accessSummaryBox");
 const accessPermissionList = document.getElementById("accessPermissionList");
 const navAccessControl = document.getElementById("navAccessControl");
+const navAuditLogs = document.getElementById("navAuditLogs");
+const navModelManagement = document.getElementById("navModelManagement");
 const userAdminSection = document.getElementById("userAdminSection");
 const userAdminState = document.getElementById("userAdminState");
 const createUserForm = document.getElementById("createUserForm");
@@ -107,11 +109,22 @@ const createUserRole = document.getElementById("createUserRole");
 const createUserActive = document.getElementById("createUserActive");
 const createUserSubmitBtn = document.getElementById("createUserSubmitBtn");
 const userList = document.getElementById("userList");
+const auditFilterActor = document.getElementById("auditFilterActor");
+const auditFilterAction = document.getElementById("auditFilterAction");
+const auditRefreshButton = document.getElementById("auditRefreshButton");
+const auditLogState = document.getElementById("auditLogState");
+const auditLogList = document.getElementById("auditLogList");
+const modelManagementState = document.getElementById("modelManagementState");
+const modelPanelNote = document.getElementById("modelPanelNote");
+const modelSummary = document.getElementById("modelSummary");
+const anomalyCandidates = document.getElementById("anomalyCandidates");
+const rcaCandidates = document.getElementById("rcaCandidates");
 
 let latestAnalysis = null;
 let systems = [];
 let managedUsers = [];
 let currentView = "dashboard";
+let auditLogItems = [];
 
 const authState = {
   config: {
@@ -280,8 +293,14 @@ function applyPermissionState() {
   setControlEnabled(rejectIncidentBtn, hasPermission("feedback_write"), "Your role cannot submit incident feedback.");
   setControlEnabled(unknownIncidentBtn, hasPermission("feedback_write"), "Your role cannot submit incident feedback.");
   setSectionVisible(navAccessControl, authState.config?.enabled && hasPermission("user_manage"));
+  setSectionVisible(navAuditLogs, hasPermission("audit_view"));
+  setSectionVisible(navModelManagement, hasPermission("model_select"));
   setSectionVisible(userAdminSection, authState.config?.enabled && hasPermission("user_manage"));
-  if (currentView === "access-control" && navAccessControl.classList.contains("hidden")) {
+  if (
+    (currentView === "access-control" && navAccessControl.classList.contains("hidden")) ||
+    (currentView === "audit-logs" && navAuditLogs.classList.contains("hidden")) ||
+    (currentView === "model-management" && navModelManagement.classList.contains("hidden"))
+  ) {
     switchView("dashboard");
     const dashboardNav = navItems.find((item) => item.dataset.view === "dashboard" && !item.dataset.scrollTarget);
     if (dashboardNav) {
@@ -592,6 +611,117 @@ function renderUsers(items) {
   }).join("");
 }
 
+function summarizeAuditPayload(payload) {
+  if (!payload || typeof payload !== "object" || !Object.keys(payload).length) {
+    return "";
+  }
+  return JSON.stringify(payload, null, 2);
+}
+
+function renderAuditLogs(items) {
+  auditLogItems = Array.isArray(items) ? items : [];
+
+  if (!auditLogItems.length) {
+    auditLogList.innerHTML = `<div class="history-empty">No audit events match the current filters.</div>`;
+    return;
+  }
+
+  auditLogList.innerHTML = auditLogItems.map((item) => {
+    const payloadText = summarizeAuditPayload(item.payload);
+    return `
+      <article class="audit-log-card">
+        <div><strong>${escapeHtml(item.action || "unknown_action")}</strong></div>
+        <div class="audit-log-meta">
+          <span>${escapeHtml(formatTimestamp(item.created_at))}</span>
+          <span>actor=${escapeHtml(item.actor || "system")}</span>
+          <span>target=${escapeHtml(item.target_type || "-")}:${escapeHtml(item.target_id || "-")}</span>
+        </div>
+        ${payloadText ? `<div class="audit-log-payload">${escapeHtml(payloadText)}</div>` : ""}
+      </article>
+    `;
+  }).join("");
+}
+
+function formatMetricPairs(metrics) {
+  if (!metrics || typeof metrics !== "object" || !Object.keys(metrics).length) {
+    return "No metrics recorded.";
+  }
+  return Object.entries(metrics)
+    .map(([key, value]) => `${key}=${typeof value === "number" ? value.toFixed(4) : String(value)}`)
+    .join(" | ");
+}
+
+function renderModelCard(systemId, modelType, item, canPromote) {
+  if (!item) {
+    return `<div class="history-empty">No ${escapeHtml(modelType)} model available.</div>`;
+  }
+
+  return `
+    <article class="model-card">
+      <div><strong>${escapeHtml(item.model_name || item.model_id || "unknown_model")}</strong></div>
+      <div class="model-meta">
+        <span>score=${Number(item.rank_score ?? 0).toFixed(4)}</span>
+        <span>trained=${escapeHtml(formatTimestamp(item.trained_at))}</span>
+        <span>status=${escapeHtml(item.status || modelType)}</span>
+      </div>
+      <div class="model-metrics">${escapeHtml(formatMetricPairs(item.metrics || {}))}</div>
+      <div class="model-meta">
+        <span>artifact=${escapeHtml(item.artifact_dir || "-")}</span>
+      </div>
+      <div class="model-card-actions">
+        <button
+          type="button"
+          class="btn btn-action promote-model-button"
+          data-system-id="${escapeHtml(systemId)}"
+          data-model-type="${escapeHtml(modelType)}"
+          data-model-name="${escapeHtml(item.model_name || "")}"
+          ${canPromote ? "" : "disabled title=\"Your role cannot promote models.\""}
+        >
+          Promote
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+function renderModelSummary(payload) {
+  const selected = selectedSystem();
+  modelPanelNote.textContent = selected
+    ? `Registry-backed production and candidate models for ${selected.display_name || selected.system_id}`
+    : "Registry-backed production and candidate models";
+
+  modelSummary.innerHTML = [
+    {
+      title: "Anomaly Production",
+      item: payload?.anomaly?.production,
+    },
+    {
+      title: "RCA Production",
+      item: payload?.rca?.production,
+    },
+  ].map(({ title, item }) => `
+    <article class="model-card">
+      <div><strong>${escapeHtml(title)}</strong></div>
+      <div class="model-meta">
+        <span>model=${escapeHtml(item?.model_name || "-")}</span>
+        <span>updated=${escapeHtml(formatTimestamp(item?.updated_at))}</span>
+      </div>
+      <div class="model-metrics">${escapeHtml(formatMetricPairs(item?.metrics || {}))}</div>
+      <div class="model-meta">
+        <span>artifact=${escapeHtml(item?.artifact_dir || "-")}</span>
+      </div>
+    </article>
+  `).join("");
+
+  const canPromote = hasPermission("model_promote");
+  anomalyCandidates.innerHTML = (payload?.anomaly?.candidates || []).length
+    ? payload.anomaly.candidates.map((item) => renderModelCard(payload.system_id, "anomaly", item, canPromote)).join("")
+    : `<div class="history-empty">No anomaly candidates recorded for this system.</div>`;
+  rcaCandidates.innerHTML = (payload?.rca?.candidates || []).length
+    ? payload.rca.candidates.map((item) => renderModelCard(payload.system_id, "rca", item, canPromote)).join("")
+    : `<div class="history-empty">No RCA candidates recorded for this system.</div>`;
+}
+
 async function refreshUsers() {
   if (!authState.config?.enabled || !hasPermission("user_manage")) {
     return;
@@ -605,6 +735,62 @@ async function refreshUsers() {
     if (err.code === "AUTH_REQUIRED") return;
     userAdminState.textContent = `Failed to load users: ${err.message}`;
     userList.innerHTML = `<div class="history-empty">Failed to load users: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function refreshAuditLogs() {
+  if (!hasPermission("audit_view")) {
+    return;
+  }
+
+  auditLogState.textContent = "Loading audit log...";
+  try {
+    const params = new URLSearchParams({ limit: "100" });
+    if (auditFilterActor?.value.trim()) {
+      params.set("actor", auditFilterActor.value.trim());
+    }
+    if (auditFilterAction?.value.trim()) {
+      params.set("action", auditFilterAction.value.trim());
+    }
+    const system = selectedSystem();
+    if (system?.system_id) {
+      params.set("system_id", system.system_id);
+    }
+    const payload = await fetchJson(`/api/audit-logs?${params.toString()}`);
+    renderAuditLogs(payload.items || []);
+    auditLogState.textContent = `${(payload.items || []).length} audit event(s) loaded.`;
+  } catch (err) {
+    if (err.code === "AUTH_REQUIRED") return;
+    auditLogState.textContent = `Failed to load audit logs: ${err.message}`;
+    auditLogList.innerHTML = `<div class="history-empty">Failed to load audit logs: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function refreshModelManagement() {
+  if (!hasPermission("model_select")) {
+    return;
+  }
+
+  const system = selectedSystem();
+  if (!system?.system_id) {
+    modelManagementState.textContent = "No system selected.";
+    modelSummary.innerHTML = "";
+    anomalyCandidates.innerHTML = `<div class="history-empty">No anomaly candidates loaded.</div>`;
+    rcaCandidates.innerHTML = `<div class="history-empty">No RCA candidates loaded.</div>`;
+    return;
+  }
+
+  modelManagementState.textContent = `Loading models for ${system.display_name || system.system_id}...`;
+  try {
+    const payload = await fetchJson(`/api/models?system_id=${encodeURIComponent(system.system_id)}`);
+    renderModelSummary(payload);
+    modelManagementState.textContent = `Loaded registry for ${system.display_name || system.system_id}.`;
+  } catch (err) {
+    if (err.code === "AUTH_REQUIRED") return;
+    modelManagementState.textContent = `Failed to load model registry: ${err.message}`;
+    modelSummary.innerHTML = "";
+    anomalyCandidates.innerHTML = `<div class="history-empty">Failed to load anomaly candidates: ${escapeHtml(err.message)}</div>`;
+    rcaCandidates.innerHTML = `<div class="history-empty">Failed to load RCA candidates: ${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -845,6 +1031,8 @@ async function boot() {
   renderSystems(systemPayload.items || [], systemPayload.default_system_id);
   renderAccessSummary();
   await refreshUsers();
+  await refreshAuditLogs();
+  await refreshModelManagement();
   setPipelineState("Ready", "ok");
 }
 
@@ -1060,6 +1248,41 @@ async function handleUserListClick(event) {
   }
 }
 
+async function handleModelCardClick(event) {
+  const button = event.target.closest(".promote-model-button");
+  if (!button) return;
+
+  const systemId = button.dataset.systemId;
+  const modelType = button.dataset.modelType;
+  const modelName = button.dataset.modelName;
+  if (!systemId || !modelType || !modelName) {
+    return;
+  }
+
+  try {
+    button.disabled = true;
+    modelManagementState.textContent = `Promoting ${modelName} for ${systemId}/${modelType}...`;
+    await fetchJson("/api/models/promote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system_id: systemId,
+        model_type: modelType,
+        model_name: modelName,
+      }),
+    });
+    modelManagementState.textContent = `Promoted ${modelName} for ${systemId}/${modelType}.`;
+    await refreshModelManagement();
+    await refreshAuditLogs();
+  } catch (err) {
+    if (err.code !== "AUTH_REQUIRED") {
+      modelManagementState.textContent = `Promote failed: ${err.message}`;
+    }
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function initializeApp() {
   try {
     const ready = await ensureAuthenticated();
@@ -1148,10 +1371,27 @@ bootstrapForm.addEventListener("submit", handleBootstrapSubmit);
 logoutBtn.addEventListener("click", handleLogout);
 createUserForm.addEventListener("submit", handleCreateUser);
 userList.addEventListener("click", handleUserListClick);
+auditRefreshButton.addEventListener("click", refreshAuditLogs);
+systemSelect.addEventListener("change", async () => {
+  if (currentView === "audit-logs") {
+    await refreshAuditLogs();
+  }
+  if (currentView === "model-management") {
+    await refreshModelManagement();
+  }
+});
+anomalyCandidates.addEventListener("click", handleModelCardClick);
+rcaCandidates.addEventListener("click", handleModelCardClick);
 for (const item of navItems) {
-  item.addEventListener("click", () => {
+  item.addEventListener("click", async () => {
     setActiveNav(item);
     switchView(item.dataset.view || "dashboard", item.dataset.scrollTarget || "");
+    if (item.dataset.view === "audit-logs") {
+      await refreshAuditLogs();
+    }
+    if (item.dataset.view === "model-management") {
+      await refreshModelManagement();
+    }
   });
 }
 
