@@ -12,6 +12,7 @@ class PipelineAnalyzeRequest(BaseModel):
     window: WindowPredictRequest
     graph: GraphPredictRequest | None = None
     run_rca_on_any_input: bool = False
+    model_key: str | None = None
 
 
 class PolicyDecision(BaseModel):

@@ -1,0 +1,35 @@
+system_id: online-boutique-staging
+system_family: ecommerce
+display_name: Online Boutique Staging
+namespace: default
+
+entry_services:
+  - frontend
+
+jaeger_services:
+  - frontend
+  - checkoutservice
+  - currencyservice
+  - recommendationservice
+  - productcatalogservice
+  - cartservice
+  - shippingservice
+  - paymentservice
+  - emailservice
+
+prometheus_labels:
+  namespace: default
+
+model_profile:
+  anomaly:
+    registry_root: ../../../data_anomaly_balanced_v3/models
+    stage: production
+  rca:
+    registry_root: ../../../data_rca_balanced_v3/models
+    stage: production
+
+trace_adapter: jaeger
+metric_adapter: prometheus
+log_adapter: kubectl
+
+service_catalog: service_catalog.json

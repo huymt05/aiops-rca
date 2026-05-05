@@ -475,6 +475,24 @@ def get_production_model(
     return dict(production) if production else None
 
 
+def get_model_summary(
+    models_root: Path,
+    *,
+    system_id: str,
+    model_type: str,
+    task: str | None = None,
+) -> dict[str, Any]:
+    payload = load_registry(models_root, task=task or model_type, system_id=system_id)
+    task_block = _ensure_system_task(payload, _normalize_system_id(system_id), model_type)
+    return {
+        "system_id": _normalize_system_id(system_id),
+        "model_type": model_type,
+        "production": dict(task_block.get("production")) if task_block.get("production") else None,
+        "previous": [dict(item) for item in (task_block.get("previous") or [])],
+        "candidates": [dict(item) for item in (task_block.get("candidates") or [])],
+    }
+
+
 def promote_model(
     models_root: Path,
     *,

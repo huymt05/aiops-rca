@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "created_at": "2026-05-02T12:52:18.608024+00:00",
+  "task": "anomaly_training",
+  "model_name": "anomaly_xgb_lgbm",
+  "output_dir": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\models\\anomaly_xgb_lgbm",
+  "train_script": "D:\\DACN\\CI_CD\\aiops-rca-latest\\pipeline\\rca_data_pipeline\\scripts\\27_train_anomaly.py",
+  "data_root": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2",
+  "git": {
+    "commit": "7264cca39eb9538179eb860ab5f279c1347a8dbb",
+    "branch": "codex/rf-rca-integration",
+    "dirty": false
+  },
+  "args": {
+    "data_root": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2",
+    "feature_file": null,
+    "output_dir": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\models\\anomaly_xgb_lgbm",
+    "random_state": 42,
+    "model_kind": "ensemble",
+    "optimize_for": "anomaly",
+    "threshold_bias": -0.08,
+    "mlflow": false,
+    "mlflow_experiment": "aiops-microservices-demo"
+  },
+  "dataset": {
+    "feature_file": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\processed\\anomaly\\window_features_labeled.parquet",
+    "train_rows": 110,
+    "val_rows": 50,
+    "test_rows": 67,
+    "train_runs": 47,
+    "val_runs": 21,
+    "test_runs": 28,
+    "feature_columns": [
+      "trace_count",
+      "service_count",
+      "service_role_count",
+      "avg_trace_duration_ms",
+      "p95_trace_duration_ms",
+      "max_trace_duration_ms",
+      "error_trace_ratio",
+      "error_span_ratio",
+      "request_fanout_mean",
+      "critical_path_mean_ms",
+      "latency_cv",
+      "mean_span_count",
+      "call_type_diversity",
+      "entrypoint_trace_ratio",
+      "stateful_trace_ratio"
+    ]
+  },
+  "artifacts": {
+    "metrics": "metrics.json",
+    "feature_columns": "feature_columns.json",
+    "feature_importance": "feature_importance.csv",
+    "inference_config": "inference_config.json",
+    "imputer": "imputer.joblib",
+    "model": {
+      "kind": "ensemble",
+      "members": [
+        {
+          "kind": "xgb",
+          "artifact": "model_xgb.joblib",
+          "params": {
+            "kind": "xgb",
+            "n_estimators": 320,
+            "learning_rate": 0.03,
+            "max_depth": 5,
+            "subsample": 0.9,
+            "colsample_bytree": 0.8
+          }
+        },
+        {
+          "kind": "lgbm",
+          "artifact": "model_lgbm.joblib",
+          "params": {
+            "kind": "lgbm",
+            "n_estimators": 220,
+            "learning_rate": 0.05,
+            "num_leaves": 31,
+            "max_depth": -1,
+            "subsample": 0.9,
+            "colsample_bytree": 0.9
+          }
+        }
+      ]
+    }
+  },
+  "package_versions": {
+    "python": "3.13.7",
+    "numpy": "2.3.3",
+    "pandas": "3.0.1",
+    "scikit-learn": "1.8.0",
+    "joblib": "1.5.3",
+    "xgboost": "3.2.0",
+    "lightgbm": "4.6.0",
+    "mlflow": null,
+    "dagshub": null
+  },
+  "extra": {
+    "best_params": {
+      "kind": "ensemble",
+      "members": [
+        {
+          "kind": "xgb",
+          "n_estimators": 320,
+          "learning_rate": 0.03,
+          "max_depth": 5,
+          "subsample": 0.9,
+          "colsample_bytree": 0.8
+        },
+        {
+          "kind": "lgbm",
+          "n_estimators": 220,
+          "learning_rate": 0.05,
+          "num_leaves": 31,
+          "max_depth": -1,
+          "subsample": 0.9,
+          "colsample_bytree": 0.9
+        }
+      ]
+    },
+    "best_threshold": 0.42,
+    "val_metrics": {
+      "precision_anomaly": 0.7391304347826086,
+      "recall_anomaly": 0.8095238095238095,
+      "specificity": 0.7931034482758621,
+      "balanced_accuracy": 0.8013136288998358,
+      "f1_anomaly": 0.7727272727272727,
+      "roc_auc": 0.876847290640394,
+      "average_precision": 0.8771231221495828,
+      "confusion_matrix": {
+        "tp": 17,
+        "tn": 23,
+        "fp": 6,
+        "fn": 4
+      },
+      "threshold": 0.42
+    },
+    "test_metrics": {
+      "precision_anomaly": 0.7222222222222222,
+      "recall_anomaly": 0.9285714285714286,
+      "specificity": 0.7435897435897436,
+      "balanced_accuracy": 0.8360805860805861,
+      "f1_anomaly": 0.8125,
+      "roc_auc": 0.9056776556776557,
+      "average_precision": 0.8891802770997496,
+      "confusion_matrix": {
+        "tp": 26,
+        "tn": 29,
+        "fp": 10,
+        "fn": 2
+      },
+      "threshold": 0.42
+    }
+  }
+}

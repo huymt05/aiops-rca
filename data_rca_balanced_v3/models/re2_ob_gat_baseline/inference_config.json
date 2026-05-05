@@ -1,0 +1,6 @@
+{
+  "model_name": "re2_ob_gat_baseline",
+  "model_type": "simple_graph_attention",
+  "dataset": "RCAEval RE2-OB",
+  "top_k_default": 3
+}

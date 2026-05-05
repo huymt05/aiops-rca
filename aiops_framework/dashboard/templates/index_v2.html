@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AIOps RCA Dashboard</title>
-  <link rel="stylesheet" href="/static/dashboard.css" />
+  <link rel="stylesheet" href="/static/dashboard.css?v=__STATIC_VERSION__" />
 </head>
 <body>
   <div id="authOverlay" class="auth-overlay hidden">
@@ -128,6 +128,11 @@
                 </div>
                 <span class="panel-note">Sample and live sources</span>
               </div>
+
+              <label class="field">
+                <span class="field-label">RCA Model</span>
+                <select id="modelSelect"></select>
+              </label>
 
               <label class="field">
                 <span class="field-label">Graph Sample</span>
@@ -377,6 +382,6 @@
   <script>
     window.DASHBOARD_CONFIG = __DASHBOARD_CONFIG__;
   </script>
-  <script src="/static/dashboard_v2.js"></script>
+  <script src="/static/dashboard_v2.js?v=__STATIC_VERSION__"></script>
 </body>
 </html>

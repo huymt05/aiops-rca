@@ -2,3 +2,5 @@ fastapi
 uvicorn
 torch
 pydantic
+joblib
+scikit-learn

@@ -61,6 +61,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--model-kind", choices=["auto", "ensemble", "xgb", "lgbm", "gbrt"], default="auto")
     parser.add_argument("--optimize-for", choices=["anomaly", "normal"], default="anomaly")
+    parser.add_argument(
+        "--threshold-bias",
+        type=float,
+        default=0.0,
+        help="Additive adjustment applied after threshold search. Negative values make RCA triggering easier.",
+    )
     parser.add_argument("--mlflow", action="store_true", help="Enable MLflow logging for params, metrics, and artifacts.")
     parser.add_argument("--mlflow-experiment", default="aiops-microservices-demo")
     return parser.parse_args()
@@ -158,6 +164,11 @@ def best_threshold(y_true: np.ndarray, prob: np.ndarray, optimize_for: str = "an
             best_score = score
             best_t = float(threshold)
     return best_t
+
+
+def apply_threshold_bias(threshold: float, bias: float) -> float:
+    adjusted = float(threshold) + float(bias)
+    return float(min(0.99, max(0.01, adjusted)))
 
 
 def ranking_score(metrics: dict[str, object], optimize_for: str = "anomaly") -> float:
@@ -404,6 +415,7 @@ def main() -> None:
 
         val_prob = model.predict_proba(X_val)[:, 1]
         threshold = best_threshold(y_val, val_prob, optimize_for=args.optimize_for)
+        threshold = apply_threshold_bias(threshold, args.threshold_bias)
         metrics = compute_metrics(y_val, val_prob, threshold)
         rank = ranking_score(metrics, optimize_for=args.optimize_for)
         trained_models.append(
@@ -435,6 +447,7 @@ def main() -> None:
     if args.model_kind in {"auto", "ensemble"} and xgb_best is not None and lgbm_best is not None:
         ensemble_val_prob = 0.5 * np.asarray(xgb_best["val_prob"]) + 0.5 * np.asarray(lgbm_best["val_prob"])
         ensemble_thr = best_threshold(y_val, ensemble_val_prob, optimize_for=args.optimize_for)
+        ensemble_thr = apply_threshold_bias(ensemble_thr, args.threshold_bias)
         ensemble_val_metrics = compute_metrics(y_val, ensemble_val_prob, ensemble_thr)
         ensemble_rank = ranking_score(ensemble_val_metrics, optimize_for=args.optimize_for)
         tuning_results.append(
@@ -465,6 +478,7 @@ def main() -> None:
         "val_runs": len(val_runs),
         "test_runs": len(test_runs),
         "optimize_for": args.optimize_for,
+        "threshold_bias": args.threshold_bias,
         "ensemble_used": ensemble_used,
         "best_params": best_params,
         "best_threshold": best_thr,
@@ -526,6 +540,7 @@ def main() -> None:
         "model_kind": str(best_params.get("kind")),
         "optimize_for": args.optimize_for,
         "threshold": best_thr,
+        "threshold_bias": args.threshold_bias,
         "feature_columns_artifact": "feature_columns.json",
         "imputer_artifact": "imputer.joblib",
         "model_artifacts": model_artifacts,

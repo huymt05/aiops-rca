@@ -1,0 +1,34 @@
+{
+  "model_type": "random_forest_service_ranker",
+  "dataset": "RCAEval RE2-OB",
+  "train_cases": 90,
+  "train_rows": 990,
+  "num_features": 480,
+  "services": [
+    "adservice",
+    "cartservice",
+    "checkoutservice",
+    "currencyservice",
+    "emailservice",
+    "frontend",
+    "paymentservice",
+    "productcatalogservice",
+    "recommendationservice",
+    "redis",
+    "shippingservice"
+  ],
+  "metrics_note": {
+    "case_cv_top1": 0.9667,
+    "case_cv_top2": 1.0,
+    "case_cv_top3": 1.0,
+    "case_cv_mrr": 0.9833,
+    "leave_service_top1": 0.8222,
+    "leave_service_top2": 0.9333,
+    "leave_service_top3": 0.9667,
+    "leave_service_mrr": 0.8956,
+    "leave_fault_top1": 0.9,
+    "leave_fault_top2": 1.0,
+    "leave_fault_top3": 1.0,
+    "leave_fault_mrr": 0.95
+  }
+}

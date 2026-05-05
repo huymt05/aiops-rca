@@ -1,6 +1,6 @@
 param(
     [string]$AnomalyBaseUrl = "http://127.0.0.1:8000",
-    [string]$RcaBaseUrl = "http://127.0.0.1:8003",
+    [string]$RcaBaseUrl = "http://127.0.0.1:8001",
     [string]$OrchestratorBaseUrl = "http://127.0.0.1:8002",
     [string]$GraphRoot = "D:\HOCTAP\2025-2026\HK2\DACN\microservices-demo\data_rca_balanced_v3\processed\rca\graph_tensors",
     [ValidateSet("demo", "real")]

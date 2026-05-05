@@ -1,0 +1,7 @@
+{
+  "model_type": "simple_graph_attention",
+  "state_dict_artifact": "best_model.pt",
+  "in_dim": 480,
+  "hidden_dim": 64,
+  "dropout": 0.2
+}

@@ -17,6 +17,8 @@ RUN apt-get update \
 
 COPY aiops_framework /app/aiops_framework
 COPY pipeline /app/pipeline
+COPY data_anomaly_balanced_v3/models /app/data_anomaly_balanced_v3/models
+COPY data_rca_balanced_v3/models /app/data_rca_balanced_v3/models
 COPY data_rca_balanced_v3/processed/rca/graph_tensors /app/data_rca_balanced_v3/processed/rca/graph_tensors
 
 EXPOSE 8010

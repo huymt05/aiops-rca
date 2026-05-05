@@ -1,0 +1,45 @@
+﻿{
+    "model_name":  "anomaly_xgb_lgbm",
+    "model_kind":  "ensemble",
+    "optimize_for":  "anomaly",
+    "threshold":  0.38,
+    "threshold_bias":  -0.08,
+    "feature_columns_artifact":  "feature_columns.json",
+    "imputer_artifact":  "imputer.joblib",
+    "model_artifacts":  {
+                            "kind":  "ensemble",
+                            "members":  [
+                                            {
+                                                "kind":  "xgb",
+                                                "artifact":  "model_xgb.joblib",
+                                                "params":  {
+                                                               "kind":  "xgb",
+                                                               "n_estimators":  320,
+                                                               "learning_rate":  0.03,
+                                                               "max_depth":  5,
+                                                               "subsample":  0.9,
+                                                               "colsample_bytree":  0.8
+                                                           }
+                                            },
+                                            {
+                                                "kind":  "lgbm",
+                                                "artifact":  "model_lgbm.joblib",
+                                                "params":  {
+                                                               "kind":  "lgbm",
+                                                               "n_estimators":  220,
+                                                               "learning_rate":  0.05,
+                                                               "num_leaves":  31,
+                                                               "max_depth":  -1,
+                                                               "subsample":  0.9,
+                                                               "colsample_bytree":  0.9
+                                                           }
+                                            }
+                                        ]
+                        },
+    "metrics_artifact":  "metrics.json",
+    "feature_importance_artifact":  "feature_importance.csv",
+    "run_manifest_artifact":  "run_manifest.json",
+    "train_runs":  47,
+    "val_runs":  21,
+    "test_runs":  28
+}

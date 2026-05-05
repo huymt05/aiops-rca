@@ -6,6 +6,8 @@ ENV PYTHONPATH=/app
 ENV AIOPS_ANOMALY_MODEL_ROOT=/app/models
 ENV AIOPS_ANOMALY_MODEL_STAGE=production
 
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+
 COPY aiops_framework/inference/anomaly_service/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 

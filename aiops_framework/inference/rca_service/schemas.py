@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class GraphPredictRequest(BaseModel):
     graph_id: str | None = None
+    model_key: str | None = None
     node_names: list[str] = Field(default_factory=list)
     node_roles: list[str] = Field(default_factory=list)
     x: list[list[float]] = Field(default_factory=list)
@@ -23,6 +24,7 @@ class RankedNode(BaseModel):
 
 class GraphPredictResponse(BaseModel):
     graph_id: str | None = None
+    model_key: str
     top1: RankedNode
     topk: list[RankedNode] = Field(default_factory=list)
     model_name: str

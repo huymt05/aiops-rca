@@ -1,0 +1,35 @@
+system_id: sock_shop
+name: Sock Shop
+system_family: ecommerce
+display_name: Online Boutique
+namespace: sock_shop
+
+entry_services:
+  - front-end
+
+jaeger_services:
+  - front-end
+  - catalogue
+  - carts
+  - orders
+  - payment
+  - shipping
+  - user
+  - queue-master
+
+prometheus_labels:
+  namespace: sock_shop
+
+model_profile:
+  anomaly:
+    registry_root: ../../../data_anomaly_balanced_v3/models
+    stage: production
+  rca:
+    registry_root: ../../../data_rca_balanced_v3/models
+    stage: production
+
+trace_adapter: jaeger
+metric_adapter: prometheus
+log_adapter: kubectl
+
+service_catalog: service_catalog.json

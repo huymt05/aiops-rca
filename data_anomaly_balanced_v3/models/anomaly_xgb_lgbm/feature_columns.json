@@ -1,0 +1,17 @@
+[
+  "trace_count",
+  "service_count",
+  "service_role_count",
+  "avg_trace_duration_ms",
+  "p95_trace_duration_ms",
+  "max_trace_duration_ms",
+  "error_trace_ratio",
+  "error_span_ratio",
+  "request_fanout_mean",
+  "critical_path_mean_ms",
+  "latency_cv",
+  "mean_span_count",
+  "call_type_diversity",
+  "entrypoint_trace_ratio",
+  "stateful_trace_ratio"
+]

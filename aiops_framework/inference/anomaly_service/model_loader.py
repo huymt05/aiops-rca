@@ -19,12 +19,9 @@ DEFAULT_MODEL_ROOT = Path(
     )
 )
 DEFAULT_MODEL_STAGE = os.environ.get("AIOPS_ANOMALY_MODEL_STAGE", DEFAULT_STAGE).strip() or DEFAULT_STAGE
-DEFAULT_ARTIFACT_DIR = Path(
-    os.environ.get(
-        "AIOPS_ANOMALY_ARTIFACT_DIR",
-        str(resolve_artifact_dir(DEFAULT_MODEL_ROOT, DEFAULT_MODEL_STAGE)),
-    )
-)
+_ARTIFACT_DIR_OVERRIDE = os.environ.get("AIOPS_ANOMALY_ARTIFACT_DIR", "").strip()
+DEFAULT_ARTIFACT_DIR = Path(_ARTIFACT_DIR_OVERRIDE) if _ARTIFACT_DIR_OVERRIDE else resolve_artifact_dir(DEFAULT_MODEL_ROOT, DEFAULT_MODEL_STAGE)
+THRESHOLD_OVERRIDE = os.environ.get("AIOPS_ANOMALY_THRESHOLD_OVERRIDE", "").strip()
 
 
 @dataclass
@@ -40,7 +37,11 @@ class LoadedAnomalyArtifacts:
 
 def load_artifacts(artifact_dir: Path | None = None) -> LoadedAnomalyArtifacts:
     artifact_dir = Path(artifact_dir or DEFAULT_ARTIFACT_DIR)
-    inference_config = json.loads((artifact_dir / "inference_config.json").read_text(encoding="utf-8"))
+    inference_config = json.loads((artifact_dir / "inference_config.json").read_text(encoding="utf-8-sig"))
+    if THRESHOLD_OVERRIDE:
+        inference_config = dict(inference_config)
+        inference_config["threshold"] = float(THRESHOLD_OVERRIDE)
+        inference_config["threshold_source"] = "env_override"
     feature_columns = json.loads((artifact_dir / "feature_columns.json").read_text(encoding="utf-8"))
     imputer = joblib.load(artifact_dir / str(inference_config["imputer_artifact"]))
     # Older serialized SimpleImputer artifacts may only carry `_fit_dtype`,

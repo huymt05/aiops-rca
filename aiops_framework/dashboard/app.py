@@ -22,6 +22,7 @@ from aiops_framework.inference.common.artifact_registry import (
 from aiops_framework.inference.rca_service.schemas import GraphPredictResponse, RankedNode
 from aiops_framework.core.config import load_system_config
 from aiops_framework.registry.system_catalog import get_system, list_systems
+from aiops_framework.registry.service_catalog import load_service_catalog
 
 from .auth import (
     AUTH_ENABLED,
@@ -72,6 +73,7 @@ ORCHESTRATOR_BASE_URL = os.environ.get("AIOPS_DASHBOARD_ORCH_BASE_URL", "http://
 RECOVERY_MODE = os.environ.get("AIOPS_RECOVERY_MODE", "demo").strip().lower()
 RECOVERY_NAMESPACE = os.environ.get("AIOPS_RECOVERY_NAMESPACE", "default").strip()
 RECOVERY_TIMEOUT_SECONDS = int(os.environ.get("AIOPS_RECOVERY_TIMEOUT_SECONDS", "120"))
+ENABLE_K8S_HEALTH_OVERRIDE = os.environ.get("AIOPS_ENABLE_K8S_HEALTH_OVERRIDE", "false").strip().lower() == "true"
 
 app = FastAPI(title="AIOps RCA Dashboard", version="0.1.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -81,6 +83,7 @@ class DemoAnalyzeRequest(BaseModel):
     sample_name: str
     preset: str = "healthy"
     run_rca_on_any_input: bool = False
+    model_key: str = os.environ.get("AIOPS_DASHBOARD_DEFAULT_RCA_MODEL_KEY", "rf_ml_ranker")
 
 
 class RecoveryActionRequest(BaseModel):
@@ -153,18 +156,24 @@ class LiveAnalyzeRequest(BaseModel):
     lookback_minutes: int = 1
     query_limit: int = 150
     run_rca_on_any_input: bool = False
+    model_key: str = os.environ.get("AIOPS_DASHBOARD_DEFAULT_RCA_MODEL_KEY", "rf_ml_ranker")
 
 
 def _read_index_html() -> str:
     html = (TEMPLATES_DIR / "index_v2.html").read_text(encoding="utf-8")
+    static_version = os.environ.get("AIOPS_DASHBOARD_STATIC_VERSION", "20260501-multimodel")
     config = {
         "anomalyBaseUrl": ANOMALY_BASE_URL,
         "rcaBaseUrl": RCA_BASE_URL,
         "orchestratorBaseUrl": ORCHESTRATOR_BASE_URL,
         "jaegerUrl": DEFAULT_JAEGER_URL,
         "prometheusUrl": DEFAULT_PROMETHEUS_URL,
+        "defaultModelKey": os.environ.get("AIOPS_DASHBOARD_DEFAULT_RCA_MODEL_KEY", "rf_ml_ranker"),
     }
-    return html.replace("__DASHBOARD_CONFIG__", json.dumps(config, ensure_ascii=False))
+    return (
+        html.replace("__DASHBOARD_CONFIG__", json.dumps(config, ensure_ascii=False))
+        .replace("__STATIC_VERSION__", static_version)
+    )
 
 
 def _public_user_payload(user: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -244,6 +253,161 @@ def _kubectl(namespace: str, args: list[str]) -> subprocess.CompletedProcess[str
 def _deployment_payload(namespace: str, name: str) -> dict[str, Any]:
     result = _kubectl(namespace, ["get", "deployment", name, "-o", "json"])
     return json.loads(result.stdout)
+
+
+def _endpoint_payload(namespace: str, name: str) -> dict[str, Any]:
+    result = _kubectl(namespace, ["get", "endpoints", name, "-o", "json"])
+    return json.loads(result.stdout)
+
+
+def _workload_payload(namespace: str, kind: str, name: str) -> dict[str, Any] | None:
+    try:
+        result = _kubectl(namespace, ["get", kind, name, "-o", "json"])
+    except subprocess.CalledProcessError:
+        return None
+    return json.loads(result.stdout)
+
+
+def _collect_kubernetes_service_health(system_id: str) -> list[dict[str, Any]]:
+    namespace = _system_namespace(system_id)
+    catalog_df = load_service_catalog(system_id)
+    service_names = [str(name).strip() for name in catalog_df["service_name"].astype(str).tolist() if str(name).strip()]
+    snapshot: list[dict[str, Any]] = []
+
+    for service_name in service_names:
+        entry: dict[str, Any] = {
+            "service_name": service_name,
+            "namespace": namespace,
+            "workload_kind": None,
+            "desired_replicas": None,
+            "available_replicas": None,
+            "endpoint_count": 0,
+            "is_degraded": False,
+            "reasons": [],
+        }
+
+        workload = _workload_payload(namespace, "deployment", service_name)
+        if workload is None:
+            workload = _workload_payload(namespace, "statefulset", service_name)
+            if workload is not None:
+                entry["workload_kind"] = "statefulset"
+        else:
+            entry["workload_kind"] = "deployment"
+
+        if workload is not None:
+            entry["desired_replicas"] = int(workload.get("spec", {}).get("replicas", 0) or 0)
+            entry["available_replicas"] = int(workload.get("status", {}).get("availableReplicas", 0) or 0)
+
+        endpoints = _workload_payload(namespace, "endpoints", service_name)
+        if endpoints is not None:
+            ready_addresses = 0
+            for subset in endpoints.get("subsets", []) or []:
+                ready_addresses += len(subset.get("addresses", []) or [])
+            entry["endpoint_count"] = ready_addresses
+
+        reasons: list[str] = []
+        desired = entry["desired_replicas"]
+        available = entry["available_replicas"]
+        endpoint_count = int(entry["endpoint_count"])
+
+        if desired == 0 and entry["workload_kind"] is not None:
+            reasons.append("scaled_to_zero")
+        elif available == 0 and desired not in (None, 0):
+            reasons.append("no_available_replicas")
+
+        if endpoint_count == 0:
+            reasons.append("no_ready_endpoints")
+
+        entry["reasons"] = reasons
+        entry["is_degraded"] = bool(reasons)
+        snapshot.append(entry)
+
+    return snapshot
+
+
+def _reason_score(reasons: list[str]) -> float:
+    score = 0.0
+    if "scaled_to_zero" in reasons:
+        score += 1.0
+    if "no_available_replicas" in reasons:
+        score += 0.9
+    if "no_ready_endpoints" in reasons:
+        score += 0.8
+    return score
+
+
+def _build_kubernetes_override_rca(
+    graph_payload: dict[str, Any] | None,
+    degraded_services: list[dict[str, Any]],
+) -> dict[str, Any]:
+    graph_id = None
+    node_names: list[str] = []
+    if graph_payload:
+        graph_id = graph_payload.get("graph_id")
+        node_names = [str(item) for item in graph_payload.get("node_names", [])]
+
+    ranked = []
+    ordered_services = sorted(
+        degraded_services,
+        key=lambda svc: (_reason_score(list(svc.get("reasons", []))), str(svc.get("service_name", ""))),
+        reverse=True,
+    )
+    for rank_index, item in enumerate(ordered_services):
+        service_name = str(item["service_name"])
+        score = max(0.5, _reason_score(list(item.get("reasons", []))) - (rank_index * 0.05))
+        node_index = node_names.index(service_name) if service_name in node_names else rank_index
+        ranked.append(
+            {
+                "node_index": int(node_index),
+                "service_name": service_name,
+                "score": float(score),
+            }
+        )
+
+    return {
+        "graph_id": graph_id,
+        "model_key": "kubernetes_health_override",
+        "top1": ranked[0],
+        "topk": ranked[:3],
+        "model_name": "kubernetes_health_override",
+        "model_type": "rule_override",
+        "metadata": {
+            "source": "kubernetes_health",
+            "degraded_services": degraded_services,
+        },
+    }
+
+
+def _apply_kubernetes_health_override(
+    result: dict[str, Any],
+    *,
+    system_id: str,
+    graph_payload: dict[str, Any] | None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    if not ENABLE_K8S_HEALTH_OVERRIDE:
+        return result, []
+
+    health_snapshot = _collect_kubernetes_service_health(system_id)
+    degraded_services = [item for item in health_snapshot if item.get("is_degraded")]
+    if not degraded_services:
+        return result, health_snapshot
+
+    anomaly = dict(result.get("anomaly") or {})
+    anomaly["is_anomaly"] = True
+    anomaly["anomaly_score"] = max(float(anomaly.get("anomaly_score", 0.0) or 0.0), 0.99)
+    anomaly_metadata = dict(anomaly.get("metadata") or {})
+    anomaly_metadata["kubernetes_health_override"] = True
+    anomaly_metadata["degraded_services"] = degraded_services
+    anomaly["metadata"] = anomaly_metadata
+    result["anomaly"] = anomaly
+    result["rca"] = _build_kubernetes_override_rca(graph_payload, degraded_services)
+    result["pipeline_state"] = "kubernetes_health_override"
+    result["metadata"] = {
+        **dict(result.get("metadata") or {}),
+        "kubernetes_health_override": True,
+        "degraded_services": degraded_services,
+    }
+    return result, health_snapshot
 
 
 def _execute_recovery_action(action: str, service_name: str, namespace: str) -> dict[str, str]:
@@ -328,6 +492,7 @@ def _run_pipeline_locally(pipeline_payload: dict[str, Any]) -> dict[str, Any]:
         top1=RankedNode(**rca_raw["top1"]),
         topk=[RankedNode(**item) for item in rca_raw.get("topk", [])],
         graph_id=rca_raw.get("graph_id"),
+        model_key=str(rca_raw.get("model_key") or pipeline_payload["graph"].get("model_key") or ""),
         model_name=rca_raw["model_name"],
         model_type=rca_raw["model_type"],
         metadata=rca_raw.get("metadata", {}),
@@ -337,6 +502,46 @@ def _run_pipeline_locally(pipeline_payload: dict[str, Any]) -> dict[str, Any]:
         "rca": rca_result,
         "pipeline_state": "anomaly_then_rca",
         "metadata": {"reason": "RCA triggered after anomaly detection", "execution_mode": "dashboard_fallback"},
+    }
+
+
+def _run_live_rca_only(graph_payload: dict[str, Any] | None, *, model_key: str | None = None) -> dict[str, Any]:
+    if graph_payload is None:
+        raise ValueError("Live RCA-only fallback requires a graph payload.")
+
+    rca_request = dict(graph_payload)
+    if model_key and not rca_request.get("model_key"):
+        rca_request["model_key"] = model_key
+
+    rca_raw = post_json(f"{RCA_BASE_URL}/predict/graph", rca_request)
+    rca_result = GraphPredictResponse(
+        top1=RankedNode(**rca_raw["top1"]),
+        topk=[RankedNode(**item) for item in rca_raw.get("topk", [])],
+        graph_id=rca_raw.get("graph_id"),
+        model_key=str(rca_raw.get("model_key") or rca_request.get("model_key") or ""),
+        model_name=rca_raw["model_name"],
+        model_type=rca_raw["model_type"],
+        metadata=rca_raw.get("metadata", {}),
+    ).model_dump()
+
+    anomaly_result = WindowPredictResponse(
+        anomaly_score=1.0,
+        threshold=0.0,
+        is_anomaly=True,
+        model_name="live_rca_only_fallback",
+        model_kind="fallback",
+        optimize_for="rca_only",
+        metadata={"reason": "Anomaly/orchestrator unavailable; RCA executed directly from live graph."},
+    ).model_dump()
+
+    return {
+        "anomaly": anomaly_result,
+        "rca": rca_result,
+        "pipeline_state": "live_rca_only",
+        "metadata": {
+            "reason": "Executed live RCA directly because anomaly/orchestrator services were unavailable.",
+            "execution_mode": "dashboard_live_rca_only_fallback",
+        },
     }
 
 
@@ -835,11 +1040,16 @@ def live_analyze(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Live collection failed: {exc}") from exc
 
+    if live_inputs.get("graph") is not None:
+        live_inputs["graph"]["model_key"] = payload.model_key
+
     pipeline_payload = {
         "window": live_inputs["window"],
         "graph": live_inputs["graph"],
         "run_rca_on_any_input": payload.run_rca_on_any_input,
+        "model_key": payload.model_key,
     }
+
     try:
         result = post_json(f"{ORCHESTRATOR_BASE_URL}/analyze/pipeline", pipeline_payload)
     except Exception as exc:
@@ -850,19 +1060,37 @@ def live_analyze(
                 "orchestrator_error": str(exc),
             }
         except Exception as fallback_exc:
-            raise HTTPException(status_code=502, detail=f"{exc} | Fallback failed: {fallback_exc}") from fallback_exc
+            try:
+                result = _run_live_rca_only(live_inputs.get("graph"), model_key=payload.model_key)
+                result["metadata"] = {
+                    **result.get("metadata", {}),
+                    "orchestrator_error": str(exc),
+                    "fallback_error": str(fallback_exc),
+                }
+            except Exception as rca_only_exc:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"{exc} | Fallback failed: {fallback_exc} | RCA-only fallback failed: {rca_only_exc}",
+                ) from rca_only_exc
 
+    result, kubernetes_health = _apply_kubernetes_health_override(
+        result,
+        system_id=payload.system_id,
+        graph_payload=live_inputs.get("graph"),
+    )
     recommendation = recommend_actions(result.get("anomaly", {}), result.get("rca"))
     result["recommendation"] = recommendation
     result["live_context"] = {
         "trace_snapshot": live_inputs["trace_snapshot"],
         "metrics_snapshot": live_inputs["metrics_snapshot"],
         "window_features": live_inputs["window"]["features"],
+        "kubernetes_health": kubernetes_health,
         "system_id": payload.system_id,
         "source_service": payload.source_service,
         "lookback_minutes": payload.lookback_minutes,
         "jaeger_url": payload.jaeger_url,
         "prometheus_url": payload.prometheus_url,
+        "model_key": payload.model_key,
     }
     event = create_monitoring_event(result)
     result["monitoring_event"] = event
@@ -891,6 +1119,9 @@ def demo_analyze(
             preset=payload.preset,
             run_rca_on_any_input=payload.run_rca_on_any_input,
         )
+        if pipeline_payload.get("graph") is not None:
+            pipeline_payload["graph"]["model_key"] = payload.model_key
+        pipeline_payload["model_key"] = payload.model_key
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
@@ -914,5 +1145,6 @@ def demo_analyze(
         "preset": payload.preset,
         "sample_name": payload.sample_name,
         "run_rca_on_any_input": payload.run_rca_on_any_input,
+        "model_key": payload.model_key,
     }
     return JSONResponse(result)

@@ -11,6 +11,12 @@ const ALL_PERMISSIONS = [
   "user_manage",
 ];
 
+const MODEL_LABELS = {
+  rf_ml_ranker: "RF ML Ranker",
+  gat_baseline: "GAT baseline",
+  hgnn_rca: "HGNN RCA",
+};
+
 const ROLE_DEFINITIONS = {
   admin: {
     label: "admin",
@@ -33,6 +39,7 @@ const ROLE_DEFINITIONS = {
 const healthCards = document.getElementById("healthCards");
 const sampleSelect = document.getElementById("sampleSelect");
 const systemSelect = document.getElementById("systemSelect");
+const modelSelect = document.getElementById("modelSelect");
 const presetSelect = document.getElementById("presetSelect");
 const forceRcaToggle = document.getElementById("forceRcaToggle");
 const refreshHealthBtn = document.getElementById("refreshHealthBtn");
@@ -456,6 +463,8 @@ function renderMetadata(data) {
     auth: data.auth,
     anomaly_model: data.anomaly?.inference_config?.model_name,
     rca_model: data.rca?.inference_config?.model_name,
+    rca_default_model_key: data.rca?.default_model_key || null,
+    rca_available_models: data.rca?.available_models || [],
     orchestrator: data.orchestrator,
   }, null, 2);
 }
@@ -472,6 +481,27 @@ function renderSystems(items, defaultSystemId) {
   if (systems.length > 0) {
     systemSelect.value = defaultSystemId || systems[0].system_id;
   }
+}
+
+function modelLabelFor(key) {
+  return MODEL_LABELS[key] || key || "Unknown model";
+}
+
+function renderRcaModels(rcaMetadata) {
+  const available = Array.isArray(rcaMetadata?.available_models) && rcaMetadata.available_models.length
+    ? rcaMetadata.available_models
+    : [{ model_key: config.defaultModelKey || "rf_ml_ranker", label: modelLabelFor(config.defaultModelKey || "rf_ml_ranker") }];
+
+  modelSelect.innerHTML = "";
+  for (const item of available) {
+    const option = document.createElement("option");
+    option.value = item.model_key;
+    option.textContent = item.label || modelLabelFor(item.model_key);
+    modelSelect.appendChild(option);
+  }
+
+  const defaultKey = rcaMetadata?.default_model_key || config.defaultModelKey || available[0]?.model_key || "rf_ml_ranker";
+  modelSelect.value = available.some((item) => item.model_key === defaultKey) ? defaultKey : available[0]?.model_key || defaultKey;
 }
 
 function selectedSystem() {
@@ -511,6 +541,7 @@ function renderLiveSnapshot(result) {
     <div><strong>Service count:</strong> ${trace.service_count ?? "-"}</div>
     <div><strong>Error trace ratio:</strong> ${Number(features.error_trace_ratio ?? 0).toFixed(2)}</div>
     <div><strong>Error span ratio:</strong> ${Number(features.error_span_ratio ?? 0).toFixed(2)}</div>
+    <div><strong>RCA model:</strong> ${escapeHtml(live.model_key || latestAnalysis?.rca?.model_key || modelSelect.value || "-")}</div>
     <div><strong>P95 latency:</strong> ${Number(features.p95_trace_duration_ms ?? 0).toFixed(1)} ms</div>
     <div><strong>Prometheus:</strong> ${metrics.status || "-"}</div>
     <div><strong>Metrics:</strong> ${metricText}</div>
@@ -780,6 +811,8 @@ function renderAnalysis(result) {
   const rec = result.recommendation || {};
   const isAnomaly = Boolean(anomaly.is_anomaly);
 
+  const rcaModelLabel = rca ? (modelLabelFor(rca.model_key || rca.metadata?.model_key || rca.model_name)) : modelLabelFor(modelSelect.value);
+
   anomalyScore.textContent = Number(anomaly.anomaly_score || 0).toFixed(4);
   anomalyThreshold.textContent = `threshold: ${Number(anomaly.threshold || 0).toFixed(2)}`;
   anomalyDecision.textContent = isAnomaly ? "Anomaly" : "Normal";
@@ -791,7 +824,7 @@ function renderAnalysis(result) {
 
   if (rca && rca.top1) {
     top1Service.textContent = rca.top1.service_name;
-    top1Score.textContent = `score: ${Number(rca.top1.score || 0).toFixed(3)}`;
+    top1Score.textContent = `score: ${Number(rca.top1.score || 0).toFixed(3)} | model: ${rcaModelLabel}`;
     topkList.innerHTML = (rca.topk || []).map((item, idx) => `
       <li>
         <span><strong>#${idx + 1}</strong> <span class="rank-service">${item.service_name}</span></span>
@@ -801,7 +834,7 @@ function renderAnalysis(result) {
     setTopbarBadge(topbarRca, rca.top1.service_name, "warn");
   } else {
     top1Service.textContent = "Skipped";
-    top1Score.textContent = "score: -";
+    top1Score.textContent = `score: - | model: ${rcaModelLabel}`;
     topkList.innerHTML = `<li><span>RCA was not triggered for this run.</span><span>-</span></li>`;
     setTopbarBadge(topbarRca, "Ready", "ok");
   }
@@ -946,6 +979,7 @@ async function runAnalysis({ preset, runRcaOnAnyInput }) {
         sample_name: sampleSelect.value,
         preset,
         run_rca_on_any_input: runRcaOnAnyInput,
+        model_key: modelSelect.value,
       }),
     });
     renderAnalysis(result);
@@ -968,6 +1002,7 @@ async function runLiveAnalysis() {
         system_id: system?.system_id || systemSelect.value,
         source_service: "all",
         run_rca_on_any_input: false,
+        model_key: modelSelect.value,
       }),
     });
     renderAnalysis(result);
@@ -990,6 +1025,7 @@ async function boot() {
   ]);
   renderHealth(health);
   renderMetadata(metadata);
+  renderRcaModels(metadata.rca || {});
   renderSamples(samples.items || []);
   renderRecoveryHistory(history.items || []);
   renderSystems(systemPayload.items || [], systemPayload.default_system_id);
@@ -1267,8 +1303,13 @@ async function initializeApp() {
 refreshHealthBtn.addEventListener("click", async () => {
   setPipelineState("Refreshing health", "muted");
   try {
-    const health = await fetchJson("/api/health");
+    const [health, metadata] = await Promise.all([
+      fetchJson("/api/health"),
+      fetchJson("/api/metadata"),
+    ]);
     renderHealth(health);
+    renderMetadata(metadata);
+    renderRcaModels(metadata.rca || {});
     setPipelineState("Ready", "ok");
   } catch (err) {
     if (err.code !== "AUTH_REQUIRED") {

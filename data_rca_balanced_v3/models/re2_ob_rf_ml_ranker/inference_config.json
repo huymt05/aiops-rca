@@ -1,0 +1,6 @@
+{
+  "model_name": "re2_ob_rf_ml_ranker",
+  "model_type": "random_forest_service_ranker",
+  "dataset": "RCAEval RE2-OB",
+  "top_k_default": 3
+}

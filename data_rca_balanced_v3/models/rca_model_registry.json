@@ -1,0 +1,17 @@
+﻿{
+  "default_model_key": "rf_ml_ranker",
+  "models": {
+    "rf_ml_ranker": {
+      "artifact_dir": "re2_ob_rf_ml_ranker",
+      "label": "RF ML Ranker"
+    },
+    "gat_baseline": {
+      "artifact_dir": "re2_ob_gat_baseline",
+      "label": "GAT baseline"
+    },
+    "hgnn_rca": {
+      "artifact_dir": "re2_ob_hgnn_rca",
+      "label": "HGNN RCA"
+    }
+  }
+}

@@ -23,7 +23,7 @@ POLICY_ACTION_MAP = {
     "Rollback / Config Update": "rollback_deployment",
 }
 
-app = FastAPI(title="AIOps Inference Orchestrator", version="0.1.0")
+app = FastAPI(title="AIOps Inference Orchestrator", version="0.2.0")
 
 
 def _anomaly_predict(payload: WindowPredictRequest) -> WindowPredictResponse:
@@ -118,7 +118,11 @@ def analyze_pipeline(payload: PipelineAnalyzeRequest) -> PipelineAnalyzeResponse
             },
         )
 
-    rca_result = _rca_predict(payload.graph.model_dump())
+    graph_payload = payload.graph.model_dump()
+    if payload.model_key and not graph_payload.get("model_key"):
+        graph_payload["model_key"] = payload.model_key
+
+    rca_result = _rca_predict(graph_payload)
     policy = _build_policy(anomaly_result, rca_result)
     execution = _maybe_execute(policy)
     return PipelineAnalyzeResponse(
@@ -131,5 +135,6 @@ def analyze_pipeline(payload: PipelineAnalyzeRequest) -> PipelineAnalyzeResponse
             "reason": "RCA triggered after anomaly detection",
             "auto_execution_enabled": AUTO_EXECUTION_ENABLED,
             "execution_attempted": execution is not None,
+            "model_key": graph_payload.get("model_key") or payload.model_key,
         },
     )
