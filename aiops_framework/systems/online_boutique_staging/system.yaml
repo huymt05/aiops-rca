@@ -1,6 +1,6 @@
-system_id: online-boutique
+system_id: online-boutique-staging
 system_family: ecommerce
-display_name: Online Boutique
+display_name: Online Boutique Staging
 namespace: default
 
 entry_services:
@@ -9,19 +9,16 @@ entry_services:
 jaeger_services:
   - frontend
   - checkoutservice
-  - cartservice
-  - paymentservice
-  - productcatalogservice
-  - recommendationservice
   - currencyservice
+  - recommendationservice
+  - productcatalogservice
+  - cartservice
   - shippingservice
+  - paymentservice
   - emailservice
-  - adservice
-  - redis-cart
 
 prometheus_labels:
   namespace: default
-  app_label: app.kubernetes.io/name
 
 model_profile:
   anomaly:
@@ -36,7 +33,3 @@ metric_adapter: prometheus
 log_adapter: kubectl
 
 service_catalog: service_catalog.json
-
-default_artifacts:
-  anomaly_data_root: D:/HOCTAP/2025-2026/HK2/DACN/microservices-demo/data_anomaly_balanced_v3
-  rca_data_root: D:/HOCTAP/2025-2026/HK2/DACN/microservices-demo/data_rca_balanced_v3

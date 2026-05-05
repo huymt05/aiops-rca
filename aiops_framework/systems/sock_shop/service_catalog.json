@@ -1,0 +1,10 @@
+[
+  { "service_name": "front-end", "service_role": "entrypoint", "service_tier": "edge", "criticality": "high", "is_entrypoint": 1, "is_stateful": 0 },
+  { "service_name": "carts", "service_role": "cart", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "catalogue", "service_role": "catalog", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "orders", "service_role": "orders", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "payment", "service_role": "payment", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "shipping", "service_role": "shipping", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "user", "service_role": "user", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "queue-master", "service_role": "worker", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 }
+]

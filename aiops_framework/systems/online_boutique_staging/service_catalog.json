@@ -1,0 +1,90 @@
+[
+  {
+    "service_name": "frontend",
+    "service_role": "entrypoint",
+    "service_tier": "edge",
+    "criticality": "high",
+    "is_entrypoint": 1,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "checkoutservice",
+    "service_role": "checkout",
+    "service_tier": "backend",
+    "criticality": "high",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "cartservice",
+    "service_role": "cart",
+    "service_tier": "backend",
+    "criticality": "high",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "paymentservice",
+    "service_role": "payment",
+    "service_tier": "backend",
+    "criticality": "high",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "productcatalogservice",
+    "service_role": "catalog",
+    "service_tier": "backend",
+    "criticality": "high",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "recommendationservice",
+    "service_role": "recommendation",
+    "service_tier": "backend",
+    "criticality": "medium",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "currencyservice",
+    "service_role": "currency",
+    "service_tier": "backend",
+    "criticality": "medium",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "shippingservice",
+    "service_role": "shipping",
+    "service_tier": "backend",
+    "criticality": "medium",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "emailservice",
+    "service_role": "notification",
+    "service_tier": "async",
+    "criticality": "low",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "adservice",
+    "service_role": "ad",
+    "service_tier": "backend",
+    "criticality": "low",
+    "is_entrypoint": 0,
+    "is_stateful": 0
+  },
+  {
+    "service_name": "redis-cart",
+    "service_role": "cache",
+    "service_tier": "stateful",
+    "criticality": "high",
+    "is_entrypoint": 0,
+    "is_stateful": 1
+  }
+]

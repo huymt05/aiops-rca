@@ -28,6 +28,10 @@ spec:
               value: production
             - name: AIOPS_RCA_DEVICE
               value: cpu
+            - name: AIOPS_RCA_MODEL_REGISTRY_PATH
+              value: /app/models/rca_model_registry.json
+            - name: AIOPS_RCA_DEFAULT_MODEL_KEY
+              value: rf_ml_ranker
           readinessProbe:
             httpGet:
               path: /health
