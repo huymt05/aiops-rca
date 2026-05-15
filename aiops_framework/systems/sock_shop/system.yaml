@@ -1,8 +1,8 @@
 system_id: sock_shop
 name: Sock Shop
 system_family: ecommerce
-display_name: Online Boutique
-namespace: sock_shop
+display_name: Sock Shop
+namespace: sock-shop
 
 entry_services:
   - front-end
@@ -18,7 +18,7 @@ jaeger_services:
   - queue-master
 
 prometheus_labels:
-  namespace: sock_shop
+  namespace: sock-shop
 
 model_profile:
   anomaly:
