@@ -16,13 +16,12 @@ spec:
     spec:
       containers:
         - name: anomaly-service
-          image: ghcr.io/example/aiops-anomaly-service:latest
-          imagePullPolicy: Never
+          image: ghcr.io/huymt05/aiops-anomaly-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               name: http
           env:
-            env:
             - name: AIOPS_ANOMALY_ARTIFACT_DIR
               value: /app/models/anomaly_xgb_lgbm
           readinessProbe:
