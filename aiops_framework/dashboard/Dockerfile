@@ -9,7 +9,6 @@ COPY aiops_framework/dashboard/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY aiops_framework /app/aiops_framework
-COPY data_rca_balanced_v3/processed/rca/graph_tensors /app/data_rca_balanced_v3/processed/rca/graph_tensors
 
 EXPOSE 8010
 
