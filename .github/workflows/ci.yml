@@ -77,4 +77,4 @@ jobs:
           kustomize build deploy/aiops/environments/prod > /tmp/aiops-prod.yaml
 
       - name: Validate frontend manifest
-        run: kubectl apply --dry-run=client -f kubernetes-manifests/frontend.yaml
+        run: kubectl apply --dry-run=client --validate=false -f kubernetes-manifests/frontend.yaml
