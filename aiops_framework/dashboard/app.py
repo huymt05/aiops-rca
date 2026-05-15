@@ -1108,7 +1108,7 @@ def live_analyze(
 @app.post("/api/demo/analyze")
 def demo_analyze(
     payload: DemoAnalyzeRequest,
-    auth: AuthContext = Depends(require_permission("read")),
+    auth: AuthContext = Depends(require_permission("demo_analyze")),
 ) -> JSONResponse:
     if payload.preset not in WINDOW_PRESETS:
         raise HTTPException(status_code=400, detail=f"Unknown preset: {payload.preset}")

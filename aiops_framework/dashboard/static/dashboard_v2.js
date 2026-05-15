@@ -1,5 +1,5 @@
 const config = window.DASHBOARD_CONFIG || {};
-
+let systemDetails = new Map();
 const ALL_PERMISSIONS = [
   "read",
   "live_analyze",
@@ -142,6 +142,21 @@ document.getElementById("orchUrl").textContent = config.orchestratorBaseUrl || "
 document.getElementById("jaegerUrl").textContent = config.jaegerUrl || "-";
 document.getElementById("promUrl").textContent = config.prometheusUrl || "-";
 
+async function getSelectedSystemDetail() {
+  const system = selectedSystem();
+  if (!system?.system_id) {
+    return null;
+  }
+
+  if (systemDetails.has(system.system_id)) {
+    return systemDetails.get(system.system_id);
+  }
+
+  const detail = await fetchJson(`/api/systems/${encodeURIComponent(system.system_id)}`);
+  systemDetails.set(system.system_id, detail);
+  return detail;
+}
+
 function badgeClass(status) {
   if (status === "ok") return "ok";
   if (status === "down") return "bad";
@@ -282,9 +297,12 @@ function setControlEnabled(node, enabled, tooltip = "") {
 function applyPermissionState() {
   const readOnlyTooltip = "Your role cannot access this action.";
   setControlEnabled(refreshHealthBtn, hasPermission("read"), readOnlyTooltip);
-  setControlEnabled(runHealthyBtn, hasPermission("read"), readOnlyTooltip);
-  setControlEnabled(runIncidentBtn, hasPermission("read"), readOnlyTooltip);
-  setControlEnabled(runDemoBtn, hasPermission("read"), readOnlyTooltip);
+  // setControlEnabled(runHealthyBtn, hasPermission("read"), readOnlyTooltip);
+  // setControlEnabled(runIncidentBtn, hasPermission("read"), readOnlyTooltip);
+  // setControlEnabled(runDemoBtn, hasPermission("read"), readOnlyTooltip);
+  setControlEnabled(runHealthyBtn, hasPermission("demo_analyze"), "Your role cannot run demo analysis.");
+  setControlEnabled(runIncidentBtn, hasPermission("demo_analyze"), "Your role cannot run demo analysis.");
+  setControlEnabled(runDemoBtn, hasPermission("demo_analyze"), "Your role cannot run demo analysis.");
   setControlEnabled(runLiveBtn, hasPermission("live_analyze"), "Your role cannot run live analysis.");
   setControlEnabled(restartPodBtn, hasPermission("recovery_execute"), "Your role cannot execute recovery actions.");
   setControlEnabled(scaleServiceBtn, hasPermission("recovery_execute"), "Your role cannot execute recovery actions.");
@@ -453,21 +471,38 @@ function renderHealth(data) {
   }).join("");
 }
 
-function renderMetadata(data) {
+function renderMetadata(data, systemDetail = null) {
   metadataBox.textContent = JSON.stringify({
-    presets: data.window_presets,
-    sample_count: data.samples?.length || 0,
-    systems: data.systems?.map((item) => item.system_id) || [],
-    live_defaults: data.live_defaults,
-    recovery: data.recovery,
-    auth: data.auth,
-    anomaly_model: data.anomaly?.inference_config?.model_name,
-    rca_model: data.rca?.inference_config?.model_name,
-    rca_default_model_key: data.rca?.default_model_key || null,
-    rca_available_models: data.rca?.available_models || [],
+    selected_system: systemDetail ? {
+      system_id: systemDetail.system_id,
+      display_name: systemDetail.display_name,
+      namespace: systemDetail.namespace,
+      entry_services: systemDetail.entry_services || [],
+      jaeger_services: systemDetail.jaeger_services || [],
+      prometheus_labels: systemDetail.prometheus_labels || {},
+      trace_adapter: systemDetail.trace_adapter || null,
+      metric_adapter: systemDetail.metric_adapter || null,
+      log_adapter: systemDetail.log_adapter || null,
+      service_catalog: systemDetail.service_catalog || null,
+    } : null,
+    global_defaults: {
+      presets: data.window_presets,
+      sample_count: data.samples?.length || 0,
+      systems: data.systems?.map((item) => item.system_id) || [],
+      live_defaults: data.live_defaults,
+      recovery: data.recovery,
+      auth: data.auth,
+    },
+    model_metadata: {
+      anomaly_model: data.anomaly?.inference_config?.model_name,
+      rca_model: data.rca?.inference_config?.model_name,
+      rca_default_model_key: data.rca?.default_model_key || null,
+      rca_available_models: data.rca?.available_models || [],
+    },
     orchestrator: data.orchestrator,
   }, null, 2);
 }
+
 
 function renderSystems(items, defaultSystemId) {
   systems = Array.isArray(items) ? items : [];
@@ -794,6 +829,20 @@ async function refreshModelManagement() {
   }
 }
 
+async function refreshMetadataPanel() {
+  try {
+    const [metadata, systemDetail] = await Promise.all([
+      fetchJson("/api/metadata"),
+      getSelectedSystemDetail(),
+    ]);
+    renderMetadata(metadata, systemDetail);
+  } catch (err) {
+    if (err.code === "AUTH_REQUIRED") return;
+    metadataBox.textContent = `Failed to load metadata: ${err.message}`;
+  }
+}
+
+
 async function refreshRecoveryHistory() {
   try {
     const history = await fetchJson("/api/recovery/history");
@@ -848,14 +897,19 @@ function renderAnalysis(result) {
   `;
 
   renderLiveSnapshot(result);
-  if (isAnomaly && rca?.top1?.service_name) {
-    refreshLogValidation(rca.top1.service_name).catch((err) => {
-      if (err.code !== "AUTH_REQUIRED") {
-        logValidationBox.textContent = `Log validation failed: ${err.message}`;
-      }
-    });
+  // if (isAnomaly && rca?.top1?.service_name) {
+  //   refreshLogValidation(rca.top1.service_name).catch((err) => {
+  //     if (err.code !== "AUTH_REQUIRED") {
+  //       logValidationBox.textContent = `Log validation failed: ${err.message}`;
+  //     }
+  //   });
+  // } else {
+  //   logValidationBox.textContent = "No anomaly RCA target yet.";
+  // }
+  if (rca?.top1?.service_name) {
+    refreshLogValidation(rca.top1.service_name);
   } else {
-    logValidationBox.textContent = "No anomaly RCA target yet.";
+    logValidationBox.innerHTML = `<div class="history-empty">No anomaly RCA target yet.</div>`;
   }
 }
 
@@ -876,6 +930,39 @@ function currentRecoveryContext() {
   };
 }
 
+// async function executeRecovery(action) {
+//   if (!latestAnalysis) {
+//     alert("Run an analysis first so the dashboard has a target service.");
+//     return;
+//   }
+
+//   const context = currentRecoveryContext();
+//   try {
+//     const result = await fetchJson("/api/recovery/execute", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         action,
+//         service_name: context.service_name,
+//         severity: context.severity,
+//         source: "dashboard_demo",
+//         context: context.context,
+//       }),
+//     });
+//     recoveryLog.innerHTML = `
+//       <strong>${result.action_label}</strong> accepted for <strong>${result.service_name}</strong><br/>
+//       <span>Status: ${result.status} | Severity: ${result.severity} | Mode: ${result.mode || "-"}</span><br/>
+//       <span>${result.notes}</span><br/>
+//       <small>${result.timestamp}</small>
+//     `;
+//     await refreshRecoveryHistory();
+//   } catch (err) {
+//     if (err.code !== "AUTH_REQUIRED") {
+//       alert(err.message);
+//     }
+//   }
+// }
+
 async function executeRecovery(action) {
   if (!latestAnalysis) {
     alert("Run an analysis first so the dashboard has a target service.");
@@ -889,6 +976,7 @@ async function executeRecovery(action) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action,
+        system_id: context.context.system_id,
         service_name: context.service_name,
         severity: context.severity,
         source: "dashboard_demo",
@@ -939,30 +1027,106 @@ async function recordFeedback(feedback) {
   }
 }
 
+// async function refreshLogValidation(serviceName) {
+//   const systemId = latestAnalysis?.live_context?.system_id || systemSelect.value;
+//   logValidationBox.textContent = `Loading logs for ${serviceName}...`;
+//   const params = new URLSearchParams({
+//     system_id: systemId,
+//     service_name: serviceName,
+//     tail: "200",
+//     since: "10m",
+//   });
+//   const data = await fetchJson(`/api/logs/recent?${params.toString()}`);
+//   const lines = data.important_lines?.length ? data.important_lines : data.raw_tail || [];
+//   const renderedLines = lines.length
+//     ? lines.map((line) => `<div class="log-line">${escapeHtml(line)}</div>`).join("")
+//     : `<div class="history-empty">No error/warn/exception lines found in the recent log window.</div>`;
+//   logValidationBox.innerHTML = `
+//     <div class="history-meta">
+//       <span>service=${escapeHtml(data.service_name)}</span>
+//       <span>namespace=${escapeHtml(data.namespace)}</span>
+//       <span>important=${escapeHtml(data.important_count)}</span>
+//       <span>lines=${escapeHtml(data.line_count)}</span>
+//     </div>
+//     <div class="log-lines">${renderedLines}</div>
+//   `;
+// }
 async function refreshLogValidation(serviceName) {
   const systemId = latestAnalysis?.live_context?.system_id || systemSelect.value;
-  logValidationBox.textContent = `Loading logs for ${serviceName}...`;
-  const params = new URLSearchParams({
-    system_id: systemId,
-    service_name: serviceName,
-    tail: "200",
-    since: "10m",
-  });
-  const data = await fetchJson(`/api/logs/recent?${params.toString()}`);
-  const lines = data.important_lines?.length ? data.important_lines : data.raw_tail || [];
-  const renderedLines = lines.length
-    ? lines.map((line) => `<div class="log-line">${escapeHtml(line)}</div>`).join("")
-    : `<div class="history-empty">No error/warn/exception lines found in the recent log window.</div>`;
   logValidationBox.innerHTML = `
     <div class="history-meta">
-      <span>service=${escapeHtml(data.service_name)}</span>
-      <span>namespace=${escapeHtml(data.namespace)}</span>
-      <span>important=${escapeHtml(data.important_count)}</span>
-      <span>lines=${escapeHtml(data.line_count)}</span>
+      <span>service=${escapeHtml(serviceName)}</span>
+      <span>system=${escapeHtml(systemId || "-")}</span>
+      <span>status=loading</span>
     </div>
-    <div class="log-lines">${renderedLines}</div>
+    <div class="history-empty">Loading recent logs...</div>
   `;
+
+  try {
+    const params = new URLSearchParams({
+      system_id: systemId,
+      service_name: serviceName,
+      tail: "200",
+      since: "10m",
+    });
+    const data = await fetchJson(`/api/logs/recent?${params.toString()}`);
+    const lines = data.important_lines?.length ? data.important_lines : data.raw_tail || [];
+    const renderedLines = lines.length
+      ? lines.map((line) => `<div class="log-line">${escapeHtml(line)}</div>`).join("")
+      : `<div class="history-empty">No error/warn/exception lines found in the recent log window.</div>`;
+
+    logValidationBox.innerHTML = `
+      <div class="history-meta">
+        <span>service=${escapeHtml(data.service_name)}</span>
+        <span>namespace=${escapeHtml(data.namespace)}</span>
+        <span>important=${escapeHtml(data.important_count)}</span>
+        <span>lines=${escapeHtml(data.line_count)}</span>
+      </div>
+      <div class="log-lines">${renderedLines}</div>
+    `;
+  } catch (err) {
+    if (err.code === "AUTH_REQUIRED") {
+      return;
+    }
+    logValidationBox.innerHTML = `
+      <div class="history-meta">
+        <span>service=${escapeHtml(serviceName)}</span>
+        <span>system=${escapeHtml(systemId || "-")}</span>
+        <span>status=failed</span>
+      </div>
+      <div class="history-empty">Failed to load logs: ${escapeHtml(err.message || "Unknown error")}</div>
+    `;
+  }
 }
+
+
+
+// async function runAnalysis({ preset, runRcaOnAnyInput }) {
+//   if (!sampleSelect.value) {
+//     alert("Please choose a graph sample first.");
+//     setPipelineState("Sample required", "bad");
+//     return;
+//   }
+//   setPipelineState("Analyzing", "warn");
+//   try {
+//     const result = await fetchJson("/api/demo/analyze", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         sample_name: sampleSelect.value,
+//         preset,
+//         run_rca_on_any_input: runRcaOnAnyInput,
+//         model_key: modelSelect.value,
+//       }),
+//     });
+//     renderAnalysis(result);
+//   } catch (err) {
+//     if (err.code !== "AUTH_REQUIRED") {
+//       setPipelineState("Analysis failed", "bad");
+//       alert(err.message);
+//     }
+//   }
+// }
 
 async function runAnalysis({ preset, runRcaOnAnyInput }) {
   if (!sampleSelect.value) {
@@ -976,6 +1140,7 @@ async function runAnalysis({ preset, runRcaOnAnyInput }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        system_id: selectedSystem()?.system_id || systemSelect.value,
         sample_name: sampleSelect.value,
         preset,
         run_rca_on_any_input: runRcaOnAnyInput,
@@ -990,6 +1155,7 @@ async function runAnalysis({ preset, runRcaOnAnyInput }) {
     }
   }
 }
+
 
 async function runLiveAnalysis() {
   setPipelineState("Collecting live data", "warn");
@@ -1308,7 +1474,8 @@ refreshHealthBtn.addEventListener("click", async () => {
       fetchJson("/api/metadata"),
     ]);
     renderHealth(health);
-    renderMetadata(metadata);
+    const systemDetail = await getSelectedSystemDetail();
+    renderMetadata(metadata, systemDetail);
     renderRcaModels(metadata.rca || {});
     setPipelineState("Ready", "ok");
   } catch (err) {
@@ -1372,7 +1539,11 @@ logoutBtn.addEventListener("click", handleLogout);
 createUserForm.addEventListener("submit", handleCreateUser);
 userList.addEventListener("click", handleUserListClick);
 auditRefreshButton.addEventListener("click", refreshAuditLogs);
+
 systemSelect.addEventListener("change", async () => {
+  if (currentView === "metadata") {
+    await refreshMetadataPanel();
+  }
   if (currentView === "audit-logs") {
     await refreshAuditLogs();
   }
@@ -1380,12 +1551,16 @@ systemSelect.addEventListener("change", async () => {
     await refreshModelManagement();
   }
 });
+
 anomalyCandidates.addEventListener("click", handleModelCardClick);
 rcaCandidates.addEventListener("click", handleModelCardClick);
 for (const item of navItems) {
   item.addEventListener("click", async () => {
     setActiveNav(item);
     switchView(item.dataset.view || "dashboard", item.dataset.scrollTarget || "");
+    if (item.dataset.view === "metadata") {
+      await refreshMetadataPanel();
+    }
     if (item.dataset.view === "audit-logs") {
       await refreshAuditLogs();
     }
