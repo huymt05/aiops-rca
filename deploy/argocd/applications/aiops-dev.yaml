@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aiops-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/huymt05/aiops-rca.git
+    targetRevision: main
+    path: deploy/aiops/environments/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: aiops-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

@@ -30,10 +30,10 @@ def main() -> None:
     text = kustomization.read_text(encoding="utf-8")
 
     for image in [
-        "ghcr.io/example/aiops-anomaly-service",
-        "ghcr.io/example/aiops-rca-service",
-        "ghcr.io/example/aiops-orchestrator",
-        "ghcr.io/example/aiops-dashboard",
+        "ghcr.io/huymt05/aiops-anomaly-service",
+        "ghcr.io/huymt05/aiops-rca-service",
+        "ghcr.io/huymt05/aiops-orchestrator",
+        "ghcr.io/huymt05/aiops-dashboard",
     ]:
         text = update_tag_block(text, image, args.tag)
 

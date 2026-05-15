@@ -9,17 +9,13 @@ resources:
   - ../../apps/dashboard/base
   - ingress.yaml
 images:
-  - name: ghcr.io/example/aiops-anomaly-service
-    newName: ghcr.io/example/aiops-anomaly-service
+  - name: ghcr.io/huymt05/aiops-anomaly-service
     newTag: stable
-  - name: ghcr.io/example/aiops-rca-service
-    newName: ghcr.io/example/aiops-rca-service
+  - name: ghcr.io/huymt05/aiops-rca-service
     newTag: stable
-  - name: ghcr.io/example/aiops-orchestrator
-    newName: ghcr.io/example/aiops-orchestrator
+  - name: ghcr.io/huymt05/aiops-orchestrator
     newTag: stable
-  - name: ghcr.io/example/aiops-dashboard
-    newName: ghcr.io/example/aiops-dashboard
+  - name: ghcr.io/huymt05/aiops-dashboard
     newTag: stable
 patches:
   - target:

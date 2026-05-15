@@ -1,0 +1,80 @@
+name: aiops-ci
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "aiops_framework/**"
+      - "pipeline/**"
+      - "deploy/aiops/**"
+      - "deploy/argocd/**"
+      - "tools/update_aiops_gitops_tags.py"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/build-push.yml"
+  pull_request:
+    paths:
+      - "aiops_framework/**"
+      - "pipeline/**"
+      - "deploy/aiops/**"
+      - "deploy/argocd/**"
+      - "tools/update_aiops_gitops_tags.py"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/build-push.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate Python entrypoints
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          targets = [
+              Path("aiops_framework/dashboard/app.py"),
+              Path("aiops_framework/dashboard/live_data.py"),
+              Path("aiops_framework/inference/anomaly_service/app.py"),
+              Path("aiops_framework/inference/rca_service/app.py"),
+              Path("aiops_framework/inference/orchestrator/app.py"),
+              Path("tools/update_aiops_gitops_tags.py"),
+          ]
+
+          for path in targets:
+              ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+              print(f"validated {path}")
+          PY
+
+      - name: Validate dashboard JavaScript
+        run: |
+          node --check aiops_framework/dashboard/static/dashboard_v2.js
+          node --check aiops_framework/dashboard/static/dashboard.js
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Validate AI/Ops overlays
+        run: |
+          kustomize build deploy/aiops/environments/dev > /tmp/aiops-dev.yaml
+          kustomize build deploy/aiops/environments/prod > /tmp/aiops-prod.yaml
+
+      - name: Validate frontend manifest
+        run: kubectl apply --dry-run=client -f kubernetes-manifests/frontend.yaml
