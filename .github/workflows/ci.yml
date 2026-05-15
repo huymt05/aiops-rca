@@ -38,6 +38,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install CI validation helpers
+        run: python -m pip install --disable-pip-version-check pyyaml
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -77,4 +80,30 @@ jobs:
           kustomize build deploy/aiops/environments/prod > /tmp/aiops-prod.yaml
 
       - name: Validate frontend manifest
-        run: kubectl apply --dry-run=client --validate=false -f kubernetes-manifests/frontend.yaml
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          manifest_path = Path("kubernetes-manifests/frontend.yaml")
+          docs = [doc for doc in yaml.safe_load_all(manifest_path.read_text(encoding="utf-8")) if doc]
+
+          if not docs:
+              raise SystemExit("frontend.yaml did not contain any Kubernetes resources")
+
+          allowed = {
+              ("apps/v1", "Deployment"),
+              ("v1", "Service"),
+              ("v1", "ServiceAccount"),
+          }
+
+          for index, doc in enumerate(docs, start=1):
+              api_version = doc.get("apiVersion")
+              kind = doc.get("kind")
+              name = ((doc.get("metadata") or {}).get("name"))
+              if (api_version, kind) not in allowed:
+                  raise SystemExit(f"Unexpected resource #{index}: {(api_version, kind)}")
+              if not name:
+                  raise SystemExit(f"Resource #{index} is missing metadata.name")
+              print(f"validated {kind}/{name}")
+          PY
