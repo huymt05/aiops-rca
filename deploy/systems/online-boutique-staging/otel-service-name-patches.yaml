@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: frontend-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkoutservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: checkoutservice-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currencyservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: currencyservice-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emailservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: emailservice-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymentservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: paymentservice-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: productcatalogservice-staging
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendationservice
+spec:
+  template:
+    spec:
+      containers:
+      - name: server
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: recommendationservice-staging

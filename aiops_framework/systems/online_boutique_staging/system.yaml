@@ -1,24 +1,22 @@
 system_id: online-boutique-staging
 system_family: ecommerce
 display_name: Online Boutique Staging
-namespace: default
+namespace: online-boutique-staging
 
 entry_services:
-  - frontend
+  - frontend-staging
 
 jaeger_services:
-  - frontend
-  - checkoutservice
-  - currencyservice
-  - recommendationservice
-  - productcatalogservice
-  - cartservice
-  - shippingservice
-  - paymentservice
-  - emailservice
+  - frontend-staging
+  - checkoutservice-staging
+  - currencyservice-staging
+  - recommendationservice-staging
+  - productcatalogservice-staging
+  - paymentservice-staging
+  - emailservice-staging
 
 prometheus_labels:
-  namespace: default
+  namespace: online-boutique-staging
 
 model_profile:
   anomaly:

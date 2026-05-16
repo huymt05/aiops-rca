@@ -9,6 +9,7 @@ from urllib.request import urlopen
 
 import pandas as pd
 
+from aiops_framework.core.config import load_system_config
 from aiops_framework.registry.service_catalog import load_service_catalog, service_lookup
 from pipeline.rca_data_pipeline.feature_engineering import (
     CRITICALITY_TO_ID,
@@ -57,10 +58,10 @@ def fetch_jaeger_services(jaeger_url: str = DEFAULT_JAEGER_URL) -> list[str]:
     return app_services or services
 
 
-def _resolve_source_services(jaeger_url: str, source_service: str) -> list[str]:
+def _resolve_source_services(jaeger_url: str, source_service: str, allowed_services: list[str] | None = None) -> list[str]:
     requested = (source_service or "").strip()
     if requested.lower() in {"all", "*"}:
-        return fetch_jaeger_services(jaeger_url)
+        return [svc for svc in (allowed_services or fetch_jaeger_services(jaeger_url)) if str(svc).strip()]
     services = [item.strip() for item in requested.split(",") if item.strip()]
     return services or [DEFAULT_SOURCE_SERVICE]
 
@@ -109,8 +110,9 @@ def fetch_jaeger_payload(
     source_service: str = DEFAULT_SOURCE_SERVICE,
     lookback_minutes: int = 2,
     query_limit: int = 150,
+    allowed_services: list[str] | None = None,
 ) -> dict[str, Any]:
-    services = _resolve_source_services(jaeger_url, source_service)
+    services = _resolve_source_services(jaeger_url, source_service, allowed_services=allowed_services)
     payloads = [
         _fetch_jaeger_payload_for_service(
             jaeger_url=jaeger_url,
@@ -151,11 +153,33 @@ def _prom_query(prometheus_url: str, query: str) -> float | None:
     return _extract_prom_value(payload)
 
 
-def fetch_prometheus_snapshot(prometheus_url: str = DEFAULT_PROMETHEUS_URL) -> dict[str, Any]:
+def _prom_label_matchers(label_filters: dict[str, Any] | None) -> list[str]:
+    if not isinstance(label_filters, dict):
+        return []
+    matchers: list[str] = []
+    for key, value in label_filters.items():
+        key_str = str(key or "").strip()
+        value_str = str(value or "").strip()
+        if key_str and value_str:
+            matchers.append(f'{key_str}="{value_str}"')
+    return matchers
+
+
+def _prom_selector(matchers: list[str]) -> str:
+    cleaned = [item for item in matchers if item]
+    return f'{{{",".join(cleaned)}}}' if cleaned else ""
+
+
+def fetch_prometheus_snapshot(
+    prometheus_url: str = DEFAULT_PROMETHEUS_URL,
+    label_filters: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    scoped = _prom_label_matchers(label_filters)
+    container_scope = ['container!=""', 'pod!=""', *scoped]
     query_candidates = {
         "up_targets": ["sum(up)"],
-        "cpu_usage": ['sum(rate(container_cpu_usage_seconds_total{container!="",pod!=""}[2m]))'],
-        "memory_usage": ['sum(container_memory_working_set_bytes{container!="",pod!=""})'],
+        "cpu_usage": [f"sum(rate(container_cpu_usage_seconds_total{_prom_selector(container_scope)}[2m]))"],
+        "memory_usage": [f"sum(container_memory_working_set_bytes{_prom_selector(container_scope)})"],
         "request_rate": [
             "sum(rate(http_server_requests_seconds_count[1m]))",
             "sum(rate(traces_spanmetrics_calls_total[1m]))",
@@ -165,7 +189,13 @@ def fetch_prometheus_snapshot(prometheus_url: str = DEFAULT_PROMETHEUS_URL) -> d
             'sum(rate(traces_spanmetrics_calls_total{status_code="STATUS_CODE_ERROR"}[1m]))',
         ],
     }
-    snapshot: dict[str, Any] = {"prometheus_url": prometheus_url, "status": "ok", "values": {}, "missing": []}
+    snapshot: dict[str, Any] = {
+        "prometheus_url": prometheus_url,
+        "status": "ok",
+        "values": {},
+        "missing": [],
+        "label_filters": label_filters or {},
+    }
     for label, queries in query_candidates.items():
         value = None
         for query in queries:
@@ -500,13 +530,20 @@ def collect_live_inputs(
 ) -> dict[str, Any]:
     catalog_df = load_service_catalog(system_id)
     lookup = service_lookup(catalog_df)
-    selected_services = _resolve_source_services(jaeger_url, source_service)
+    system_cfg = load_system_config(system_id)
+    allowed_jaeger_services = [str(item).strip() for item in system_cfg.get("jaeger_services", []) if str(item).strip()]
+    selected_services = _resolve_source_services(
+        jaeger_url,
+        source_service,
+        allowed_services=allowed_jaeger_services or None,
+    )
 
     payload = fetch_jaeger_payload(
         jaeger_url=jaeger_url,
         source_service=source_service,
         lookback_minutes=lookback_minutes,
         query_limit=query_limit,
+        allowed_services=allowed_jaeger_services or None,
     )
     run_id = f"live_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     window_id = "live_recent"
@@ -533,7 +570,10 @@ def collect_live_inputs(
         window_id=window_id,
         lookback_minutes=lookback_minutes,
     )
-    metrics_snapshot = fetch_prometheus_snapshot(prometheus_url=prometheus_url)
+    metrics_snapshot = fetch_prometheus_snapshot(
+        prometheus_url=prometheus_url,
+        label_filters=system_cfg.get("prometheus_labels", {}),
+    )
     trace_snapshot = {
         "trace_count": int(traces_df["trace_id"].nunique()) if not traces_df.empty else 0,
         "span_count": int(len(spans_df)),

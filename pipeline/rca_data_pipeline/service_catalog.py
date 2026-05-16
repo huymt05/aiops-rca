@@ -17,7 +17,11 @@ DEFAULT_SERVICE_METADATA = {
 
 
 def _normalize_service_name(service_name: str) -> str:
-    return str(service_name or "unknown").strip().lower()
+    normalized = str(service_name or "unknown").strip().lower()
+    for suffix in ("-staging", "_staging"):
+        if normalized.endswith(suffix):
+            return normalized[: -len(suffix)]
+    return normalized
 
 
 def load_service_catalog(path: Path) -> pd.DataFrame:
