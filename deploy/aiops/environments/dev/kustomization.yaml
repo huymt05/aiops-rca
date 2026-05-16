@@ -10,13 +10,13 @@ resources:
   - ingress.yaml
 images:
   - name: ghcr.io/huymt05/aiops-anomaly-service
-    newTag: sha-bootstrap
+    newTag: sha-75f4347
   - name: ghcr.io/huymt05/aiops-rca-service
-    newTag: sha-bootstrap
+    newTag: sha-75f4347
   - name: ghcr.io/huymt05/aiops-orchestrator
-    newTag: sha-bootstrap
+    newTag: sha-75f4347
   - name: ghcr.io/huymt05/aiops-dashboard
-    newTag: sha-bootstrap
+    newTag: sha-75f4347
 patches:
   - target:
       kind: Deployment
