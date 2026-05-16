@@ -17,8 +17,8 @@ spec:
       serviceAccountName: aiops-orchestrator
       containers:
         - name: aiops-orchestrator
-          image: ghcr.io/example/aiops-orchestrator:latest
-          imagePullPolicy: Never
+          image: ghcr.io/huymt05/aiops-orchestrator:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8002
               name: http

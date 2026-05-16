@@ -17,8 +17,8 @@ spec:
       serviceAccountName: aiops-dashboard
       containers:
         - name: aiops-dashboard
-          image: ghcr.io/example/aiops-dashboard:latest
-          imagePullPolicy: Never
+          image: ghcr.io/huymt05/aiops-dashboard:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8010
               name: http
@@ -37,12 +37,20 @@ spec:
                   fieldPath: metadata.namespace
             - name: AIOPS_LIVE_JAEGER_URL
               value: http://jaeger.observability.svc.cluster.local:16686
+            - name: AIOPS_LIVE_PROM_URL
+              value: http://prometheus-server.monitoring.svc.cluster.local
             - name: AIOPS_LIVE_SOURCE_SERVICE
-              value: all
+              value: frontend
             - name: AIOPS_LIVE_SYSTEM_ID
               value: online-boutique
+            - name: AIOPS_LIVE_MIN_SERVICE_COVERAGE
+              value: "0.70"
+            - name: AIOPS_LIVE_COVERAGE_BYPASS_SCORE
+              value: "0.90"
             - name: AIOPS_ENABLE_K8S_HEALTH_OVERRIDE
               value: "false"
+            - name: AIOPS_DASHBOARD_STATIC_VERSION
+              value: "20260512-live-stability"
             - name: AIOPS_DASHBOARD_STATE_DIR
               value: /data/aiops-dashboard
           volumeMounts:

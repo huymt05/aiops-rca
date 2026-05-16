@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: rca-service
-          image: ghcr.io/example/aiops-rca-service:latest
-          imagePullPolicy: Never
+          image: ghcr.io/huymt05/aiops-rca-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
               name: http
