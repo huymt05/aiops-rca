@@ -24,9 +24,39 @@ SESSION_COOKIE_SAMESITE = os.environ.get("AIOPS_SESSION_COOKIE_SAMESITE", "lax")
 SESSION_BIND_USER_AGENT = os.environ.get("AIOPS_SESSION_BIND_USER_AGENT", "true").strip().lower() in {"1", "true", "yes", "on"}
 SESSION_BIND_CLIENT_HOST = os.environ.get("AIOPS_SESSION_BIND_CLIENT_HOST", "").strip().lower() in {"1", "true", "yes", "on"}
 
+# ROLE_PERMISSIONS: dict[str, set[str]] = {
+#     "admin": {
+#         "read",
+#         "live_analyze",
+#         "recovery_execute",
+#         "feedback_write",
+#         "model_select",
+#         "model_promote",
+#         "audit_view",
+#         "user_manage",
+#     },
+#     "operator": {
+#         "read",
+#         "live_analyze",
+#         "recovery_execute",
+#         "feedback_write",
+#     },
+#     "viewer": {
+#         "read",
+#     },
+#     "ml_engineer": {
+#         "read",
+#         "feedback_write",
+#         "model_select",
+#         "model_promote",
+#         "audit_view",
+#     },
+# }
+
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     "admin": {
         "read",
+        "demo_analyze",
         "live_analyze",
         "recovery_execute",
         "feedback_write",
@@ -37,21 +67,23 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
     },
     "operator": {
         "read",
+        "demo_analyze",
         "live_analyze",
         "recovery_execute",
-        "feedback_write",
     },
     "viewer": {
         "read",
     },
     "ml_engineer": {
         "read",
+        "demo_analyze",
         "feedback_write",
         "model_select",
         "model_promote",
         "audit_view",
     },
 }
+
 
 
 @dataclass(frozen=True)
