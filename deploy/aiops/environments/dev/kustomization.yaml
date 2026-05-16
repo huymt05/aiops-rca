@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: aiops-dev
 resources:
   - namespace.yaml
+  - dashboard-auth-secret.yaml
   - ../../apps/anomaly-service/base
   - ../../apps/rca-service/base
   - ../../apps/orchestrator/base
@@ -27,6 +28,45 @@ patches:
         value:
           name: AIOPS_RECOVERY_NAMESPACE
           value: default
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_AUTH_ENABLED
+          value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_SESSION_TTL_HOURS
+          value: "8"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_SESSION_COOKIE_SECURE
+          value: "false"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_BOOTSTRAP_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: aiops-dashboard-auth
+              key: bootstrap-username
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_BOOTSTRAP_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aiops-dashboard-auth
+              key: bootstrap-password
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_BOOTSTRAP_ADMIN_DISPLAY_NAME
+          valueFrom:
+            secretKeyRef:
+              name: aiops-dashboard-auth
+              key: bootstrap-display-name
   - target:
       kind: Deployment
       name: aiops-orchestrator
