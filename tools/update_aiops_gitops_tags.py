@@ -8,6 +8,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Update image tags in deploy/aiops kustomize overlays.")
     parser.add_argument("--env", choices=["dev", "prod"], required=True)
     parser.add_argument("--tag", required=True)
+    parser.add_argument(
+        "--image",
+        action="append",
+        dest="images",
+        default=[],
+        help="Specific fully-qualified image name to update. Repeat for multiple images.",
+    )
     return parser.parse_args()
 
 
@@ -29,16 +36,18 @@ def main() -> None:
     kustomization = repo_root / "deploy" / "aiops" / "environments" / args.env / "kustomization.yaml"
     text = kustomization.read_text(encoding="utf-8")
 
-    for image in [
+    images = args.images or [
         "ghcr.io/huymt05/aiops-anomaly-service",
         "ghcr.io/huymt05/aiops-rca-service",
         "ghcr.io/huymt05/aiops-orchestrator",
         "ghcr.io/huymt05/aiops-dashboard",
-    ]:
+    ]
+
+    for image in images:
         text = update_tag_block(text, image, args.tag)
 
     kustomization.write_text(text, encoding="utf-8")
-    print(f"Updated {kustomization} to tag={args.tag}")
+    print(f"Updated {kustomization} to tag={args.tag} for {', '.join(images)}")
 
 
 if __name__ == "__main__":
