@@ -43,15 +43,19 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: recommendationservice
+        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.5
         ports:
         - containerPort: 8080
         readinessProbe:
+          initialDelaySeconds: 20
           periodSeconds: 5
+          timeoutSeconds: 5
           grpc:
             port: 8080
         livenessProbe:
+          initialDelaySeconds: 20
           periodSeconds: 5
+          timeoutSeconds: 5
           grpc:
             port: 8080
         env:
