@@ -1,0 +1,24 @@
+{
+  "model_name": "rca_gat_like",
+  "model_type": "simple_graph_attention",
+  "top_k_default": 3,
+  "node_feature_names": [
+    "avg_latency_ms",
+    "p95_latency_ms",
+    "error_rate",
+    "request_count",
+    "request_share",
+    "in_degree",
+    "out_degree",
+    "role_id",
+    "tier_id",
+    "criticality_id",
+    "is_entrypoint",
+    "is_stateful"
+  ],
+  "sample_graph_id": "ob_cpu_reco_light_001__traces_0001__active",
+  "model_config_artifact": "model_config.json",
+  "state_dict_artifact": "best_model.pt",
+  "metrics_artifact": "metrics.json",
+  "run_manifest_artifact": "run_manifest.json"
+}
