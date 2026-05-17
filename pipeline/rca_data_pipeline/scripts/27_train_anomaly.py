@@ -236,9 +236,9 @@ def log_mlflow_run(
     best_thr: float,
     best_val: dict[str, object],
     test_metrics: dict[str, object],
-) -> None:
+) -> dict[str, object]:
     if mlflow is None:
-        return
+        return {}
 
     run_name = f"anomaly_{output_dir.name}"
     with mlflow.start_run(run_name=run_name):
@@ -273,6 +273,7 @@ def log_mlflow_run(
             "feature_columns.json",
             "feature_importance.csv",
             "inference_config.json",
+            "run_manifest.json",
             "imputer.joblib",
             "model.joblib",
             "model_xgb.joblib",
@@ -281,6 +282,17 @@ def log_mlflow_run(
             artifact_path = output_dir / artifact_name
             if artifact_path.exists():
                 mlflow.log_artifact(str(artifact_path))
+
+        run = mlflow.active_run()
+        return {
+            "run_id": run.info.run_id if run else "",
+            "experiment_id": run.info.experiment_id if run else "",
+            "artifact_uri": mlflow.get_artifact_uri(),
+            "tracking_uri": mlflow.get_tracking_uri(),
+            "experiment_name": str(args.mlflow_experiment).strip() or "aiops-microservices-demo",
+        }
+
+    return {}
 
 
 def main() -> None:
@@ -592,11 +604,11 @@ def main() -> None:
             "test_metrics": test_metrics,
         },
     )
+    mlflow_metadata: dict[str, object] = {}
     write_run_manifest(output_dir, manifest)
-    set_stage(data_root / "models", "anomaly", "candidate", output_dir.name, notes="Updated after anomaly training.")
 
     if setup_mlflow_if_requested(args):
-        log_mlflow_run(
+        mlflow_metadata = log_mlflow_run(
             args=args,
             data_root=data_root,
             output_dir=output_dir,
@@ -609,6 +621,18 @@ def main() -> None:
             best_val=best_val,
             test_metrics=test_metrics,
         )
+        if mlflow_metadata:
+            manifest["mlflow"] = mlflow_metadata
+            write_run_manifest(output_dir, manifest)
+
+    set_stage(
+        data_root / "models",
+        "anomaly",
+        "candidate",
+        output_dir.name,
+        notes="Updated after anomaly training.",
+        metadata={f"mlflow_{key}": value for key, value in mlflow_metadata.items()} if mlflow_metadata else None,
+    )
 
     print("Best anomaly model selected.")
     print(json.dumps({"val_metrics": best_val, "test_metrics": test_metrics, "best_params": best_params}, indent=2, ensure_ascii=False))

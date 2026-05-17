@@ -363,6 +363,7 @@ def set_stage(
     notes: str | None = None,
     *,
     system_id: str = DEFAULT_SYSTEM_ID,
+    metadata: dict[str, Any] | None = None,
 ) -> Path:
     models_root = Path(models_root)
     model_type = _infer_model_type(task, models_root)
@@ -403,6 +404,9 @@ def set_stage(
             key=lambda item: float(item.get("rank_score", 0.0) or 0.0),
             reverse=True,
         )[:MAX_CANDIDATES]
+
+    if metadata:
+        record.update({str(key): value for key, value in metadata.items()})
 
     payload["task"] = task
     payload["schema_version"] = SCHEMA_VERSION_V2

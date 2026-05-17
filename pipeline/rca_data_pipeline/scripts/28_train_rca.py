@@ -280,9 +280,9 @@ def log_mlflow_run(
     reference_graph: dict[str, object],
     in_dim: int,
     device: torch.device,
-) -> None:
+) -> dict[str, object]:
     if mlflow is None:
-        return
+        return {}
 
     with mlflow.start_run(run_name=f"rca_{output_dir.name}"):
         mlflow.set_tag("task", "root_cause_analysis")
@@ -320,10 +320,22 @@ def log_mlflow_run(
             "metrics.json",
             "model_config.json",
             "inference_config.json",
+            "run_manifest.json",
         ]:
             artifact_path = output_dir / artifact_name
             if artifact_path.exists():
                 mlflow.log_artifact(str(artifact_path))
+
+        run = mlflow.active_run()
+        return {
+            "run_id": run.info.run_id if run else "",
+            "experiment_id": run.info.experiment_id if run else "",
+            "artifact_uri": mlflow.get_artifact_uri(),
+            "tracking_uri": mlflow.get_tracking_uri(),
+            "experiment_name": str(args.mlflow_experiment).strip() or "aiops-microservices-demo",
+        }
+
+    return {}
 
 
 def main() -> None:
@@ -503,11 +515,11 @@ def main() -> None:
             "config": payload["config"],
         },
     )
+    mlflow_metadata: dict[str, object] = {}
     write_run_manifest(output_dir, manifest)
-    set_stage(data_root / "models", "rca", "candidate", output_dir.name, notes="Updated after RCA training.")
 
     if setup_mlflow_if_requested(args):
-        log_mlflow_run(
+        mlflow_metadata = log_mlflow_run(
             args=args,
             data_root=data_root,
             output_dir=output_dir,
@@ -521,6 +533,18 @@ def main() -> None:
             in_dim=in_dim,
             device=device,
         )
+        if mlflow_metadata:
+            manifest["mlflow"] = mlflow_metadata
+            write_run_manifest(output_dir, manifest)
+
+    set_stage(
+        data_root / "models",
+        "rca",
+        "candidate",
+        output_dir.name,
+        notes="Updated after RCA training.",
+        metadata={f"mlflow_{key}": value for key, value in mlflow_metadata.items()} if mlflow_metadata else None,
+    )
 
     print("Validation metrics:")
     print(json.dumps(best_val_metrics, indent=2, ensure_ascii=False))
