@@ -19,6 +19,7 @@ from aiops_framework.inference.common.artifact_registry import (
     get_model_summary,
     promote_model,
 )
+from aiops_framework.mlops import get_mlops_status
 from aiops_framework.inference.rca_service.schemas import GraphPredictResponse, RankedNode
 from aiops_framework.core.config import load_system_config
 from aiops_framework.registry.system_catalog import get_system, list_systems
@@ -902,9 +903,15 @@ def models(system_id: str, auth: AuthContext = Depends(require_permission("model
     return {
         "system_id": system_id,
         "display_name": system.get("display_name", system_id),
+        "mlops": get_mlops_status(),
         "anomaly": _model_registry_payload(system_id, "anomaly"),
         "rca": _model_registry_payload(system_id, "rca"),
     }
+
+
+@app.get("/api/mlops/status")
+def mlops_status(auth: AuthContext = Depends(require_permission("model_select"))) -> dict[str, Any]:
+    return get_mlops_status()
 
 
 @app.post("/api/models/promote")

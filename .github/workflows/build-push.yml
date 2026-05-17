@@ -8,6 +8,7 @@ on:
       - "aiops_framework/dashboard/**"
       - "aiops_framework/inference/**"
       - "aiops_framework/core/**"
+      - "aiops_framework/mlops/**"
       - "aiops_framework/registry/**"
       - "aiops_framework/system/**"
       - "aiops_framework/systems/**"
@@ -53,6 +54,7 @@ jobs:
           filters: |
             shared_all:
               - 'aiops_framework/core/**'
+              - 'aiops_framework/mlops/**'
               - 'aiops_framework/registry/**'
               - 'aiops_framework/system/**'
               - 'aiops_framework/systems/**'

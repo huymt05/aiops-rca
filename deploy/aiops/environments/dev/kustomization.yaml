@@ -67,6 +67,36 @@ patches:
             secretKeyRef:
               name: aiops-dashboard-auth
               key: bootstrap-display-name
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MODEL_REGISTRY_BACKEND
+          value: hybrid
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MLFLOW_ENABLED
+          value: "true"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MLFLOW_TRACKING_URI
+          value: http://mlflow.mlops.svc.cluster.local:5000
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MLFLOW_ARTIFACT_ROOT
+          value: s3://mlflow/
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MLFLOW_S3_ENDPOINT_URL
+          value: http://minio.mlops.svc.cluster.local:9000
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AIOPS_MLFLOW_DEFAULT_EXPERIMENT
+          value: aiops-runtime
   - target:
       kind: Deployment
       name: aiops-orchestrator
