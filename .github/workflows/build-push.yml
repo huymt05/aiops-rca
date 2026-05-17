@@ -14,6 +14,8 @@ on:
       - "aiops_framework/systems/**"
       - "config/**"
       - "pipeline/**"
+      - "data_anomaly_balanced_v3/models/**"
+      - "data_rca_balanced_v3/models/**"
       - "tools/update_aiops_gitops_tags.py"
       - "deploy/aiops/docker/**"
       - ".github/workflows/build-push.yml"
@@ -66,15 +68,19 @@ jobs:
             dashboard:
               - 'aiops_framework/dashboard/**'
               - 'deploy/aiops/docker/Dockerfile.dashboard'
+              - 'data_anomaly_balanced_v3/models/**'
+              - 'data_rca_balanced_v3/models/**'
             orchestrator:
               - 'aiops_framework/inference/orchestrator/**'
               - 'deploy/aiops/docker/Dockerfile.orchestrator'
             anomaly_service:
               - 'aiops_framework/inference/anomaly_service/**'
               - 'deploy/aiops/docker/Dockerfile.anomaly-service'
+              - 'data_anomaly_balanced_v3/models/**'
             rca_service:
               - 'aiops_framework/inference/rca_service/**'
               - 'deploy/aiops/docker/Dockerfile.rca-service'
+              - 'data_rca_balanced_v3/models/**'
 
       - name: Compute build matrix
         id: compute
