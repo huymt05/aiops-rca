@@ -1,35 +1,35 @@
 {
   "schema_version": "1.0",
-  "created_at": "2026-05-02T12:52:18.608024+00:00",
+  "created_at": "2026-05-17T06:16:38.830449+00:00",
   "task": "anomaly_training",
   "model_name": "anomaly_xgb_lgbm",
-  "output_dir": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\models\\anomaly_xgb_lgbm",
-  "train_script": "D:\\DACN\\CI_CD\\aiops-rca-latest\\pipeline\\rca_data_pipeline\\scripts\\27_train_anomaly.py",
-  "data_root": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2",
+  "output_dir": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\models\\anomaly_xgb_lgbm",
+  "train_script": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\pipeline\\rca_data_pipeline\\scripts\\27_train_anomaly.py",
+  "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
   "git": {
-    "commit": "7264cca39eb9538179eb860ab5f279c1347a8dbb",
-    "branch": "codex/rf-rca-integration",
+    "commit": "396b41c591cabc2fc71133dbd39a9b6804759651",
+    "branch": "main",
     "dirty": false
   },
   "args": {
-    "data_root": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2",
+    "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
     "feature_file": null,
-    "output_dir": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\models\\anomaly_xgb_lgbm",
+    "output_dir": null,
     "random_state": 42,
-    "model_kind": "ensemble",
+    "model_kind": "auto",
     "optimize_for": "anomaly",
-    "threshold_bias": -0.08,
-    "mlflow": false,
-    "mlflow_experiment": "aiops-microservices-demo"
+    "threshold_bias": 0.0,
+    "mlflow": true,
+    "mlflow_experiment": "aiops-anomaly-training"
   },
   "dataset": {
-    "feature_file": "D:\\doanchuyennganh_aiops\\Data4.4\\data_rca_balanced_v2\\data_rca_balanced_v2\\processed\\anomaly\\window_features_labeled.parquet",
-    "train_rows": 110,
-    "val_rows": 50,
-    "test_rows": 67,
-    "train_runs": 47,
-    "val_runs": 21,
-    "test_runs": 28,
+    "feature_file": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\processed\\anomaly\\window_features_labeled.parquet",
+    "train_rows": 96,
+    "val_rows": 41,
+    "test_rows": 45,
+    "train_runs": 48,
+    "val_runs": 17,
+    "test_runs": 19,
     "feature_columns": [
       "trace_count",
       "service_count",
@@ -55,102 +55,77 @@
     "inference_config": "inference_config.json",
     "imputer": "imputer.joblib",
     "model": {
-      "kind": "ensemble",
-      "members": [
-        {
-          "kind": "xgb",
-          "artifact": "model_xgb.joblib",
-          "params": {
-            "kind": "xgb",
-            "n_estimators": 320,
-            "learning_rate": 0.03,
-            "max_depth": 5,
-            "subsample": 0.9,
-            "colsample_bytree": 0.8
-          }
-        },
-        {
-          "kind": "lgbm",
-          "artifact": "model_lgbm.joblib",
-          "params": {
-            "kind": "lgbm",
-            "n_estimators": 220,
-            "learning_rate": 0.05,
-            "num_leaves": 31,
-            "max_depth": -1,
-            "subsample": 0.9,
-            "colsample_bytree": 0.9
-          }
-        }
-      ]
+      "kind": "xgb",
+      "artifact": "model.joblib",
+      "params": {
+        "kind": "xgb",
+        "n_estimators": 320,
+        "learning_rate": 0.03,
+        "max_depth": 5,
+        "subsample": 0.9,
+        "colsample_bytree": 0.8
+      }
     }
   },
   "package_versions": {
-    "python": "3.13.7",
-    "numpy": "2.3.3",
-    "pandas": "3.0.1",
-    "scikit-learn": "1.8.0",
-    "joblib": "1.5.3",
-    "xgboost": "3.2.0",
+    "python": "3.11.5",
+    "numpy": "2.2.6",
+    "pandas": "2.3.2",
+    "scikit-learn": "1.7.2",
+    "joblib": "1.5.2",
+    "xgboost": "3.1.2",
     "lightgbm": "4.6.0",
-    "mlflow": null,
-    "dagshub": null
+    "mlflow": "3.11.1",
+    "dagshub": "0.6.9"
   },
   "extra": {
     "best_params": {
-      "kind": "ensemble",
-      "members": [
-        {
-          "kind": "xgb",
-          "n_estimators": 320,
-          "learning_rate": 0.03,
-          "max_depth": 5,
-          "subsample": 0.9,
-          "colsample_bytree": 0.8
-        },
-        {
-          "kind": "lgbm",
-          "n_estimators": 220,
-          "learning_rate": 0.05,
-          "num_leaves": 31,
-          "max_depth": -1,
-          "subsample": 0.9,
-          "colsample_bytree": 0.9
-        }
-      ]
+      "kind": "xgb",
+      "n_estimators": 320,
+      "learning_rate": 0.03,
+      "max_depth": 5,
+      "subsample": 0.9,
+      "colsample_bytree": 0.8
     },
-    "best_threshold": 0.42,
+    "best_threshold": 0.7200000000000002,
     "val_metrics": {
-      "precision_anomaly": 0.7391304347826086,
-      "recall_anomaly": 0.8095238095238095,
-      "specificity": 0.7931034482758621,
-      "balanced_accuracy": 0.8013136288998358,
-      "f1_anomaly": 0.7727272727272727,
-      "roc_auc": 0.876847290640394,
-      "average_precision": 0.8771231221495828,
+      "precision_anomaly": 1.0,
+      "recall_anomaly": 0.6,
+      "specificity": 1.0,
+      "balanced_accuracy": 0.8,
+      "f1_anomaly": 0.75,
+      "roc_auc": 0.7935483870967742,
+      "average_precision": 0.7620574162679425,
       "confusion_matrix": {
-        "tp": 17,
-        "tn": 23,
-        "fp": 6,
+        "tp": 6,
+        "tn": 31,
+        "fp": 0,
         "fn": 4
       },
-      "threshold": 0.42
+      "threshold": 0.7200000000000002
     },
     "test_metrics": {
-      "precision_anomaly": 0.7222222222222222,
-      "recall_anomaly": 0.9285714285714286,
-      "specificity": 0.7435897435897436,
-      "balanced_accuracy": 0.8360805860805861,
-      "f1_anomaly": 0.8125,
-      "roc_auc": 0.9056776556776557,
-      "average_precision": 0.8891802770997496,
+      "precision_anomaly": 0.8333333333333334,
+      "recall_anomaly": 0.4166666666666667,
+      "specificity": 0.9696969696969697,
+      "balanced_accuracy": 0.6931818181818182,
+      "f1_anomaly": 0.5555555555555556,
+      "roc_auc": 0.8005050505050505,
+      "average_precision": 0.6772970887554222,
       "confusion_matrix": {
-        "tp": 26,
-        "tn": 29,
-        "fp": 10,
-        "fn": 2
+        "tp": 5,
+        "tn": 32,
+        "fp": 1,
+        "fn": 7
       },
-      "threshold": 0.42
+      "threshold": 0.7200000000000002
     }
+  },
+  "mlflow": {
+    "run_id": "9030b1ac6a1247598e862ceb4291701b",
+    "experiment_id": "3",
+    "artifact_uri": "mlflow-artifacts:/3/9030b1ac6a1247598e862ceb4291701b/artifacts",
+    "tracking_uri": "http://127.0.0.1:5000",
+    "experiment_name": "aiops-anomaly-training"
   }
 }

@@ -16,7 +16,7 @@
     "is_entrypoint",
     "is_stateful"
   ],
-  "sample_graph_id": "ob_cpu_reco_light_001__traces_0001__active",
+  "sample_graph_id": "ob_cpu_reco_sevhigh_loadhigh_009__traces_0001__active",
   "model_config_artifact": "model_config.json",
   "state_dict_artifact": "best_model.pt",
   "metrics_artifact": "metrics.json",

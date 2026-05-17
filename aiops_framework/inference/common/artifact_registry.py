@@ -9,6 +9,7 @@ from typing import Any
 DEFAULT_STAGE = "production"
 DEFAULT_SYSTEM_ID = "online-boutique"
 REGISTRY_FILENAME = "model_registry.json"
+LEGACY_REGISTRY_FILENAMES = ("rca_model_registry.json",)
 SCHEMA_VERSION_V1 = "1.0"
 SCHEMA_VERSION_V2 = "2.0"
 MAX_CANDIDATES = 3
@@ -22,10 +23,22 @@ def registry_path(models_root: Path) -> Path:
     return Path(models_root) / REGISTRY_FILENAME
 
 
+def _existing_registry_path(models_root: Path) -> Path:
+    models_root = Path(models_root)
+    primary = registry_path(models_root)
+    if primary.exists():
+        return primary
+    for filename in LEGACY_REGISTRY_FILENAMES:
+        candidate = models_root / filename
+        if candidate.exists():
+            return candidate
+    return primary
+
+
 def _json_read(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8")) or {}
+    return json.loads(path.read_text(encoding="utf-8-sig")) or {}
 
 
 def write_registry(models_root: Path, payload: dict[str, Any]) -> Path:
@@ -245,6 +258,123 @@ def _sync_legacy_stages(payload: dict[str, Any], *, system_id: str, model_type: 
     return payload
 
 
+def _iter_model_artifact_dirs(models_root: Path) -> list[Path]:
+    artifact_dirs: list[Path] = []
+    for child in sorted(Path(models_root).iterdir()):
+        if not child.is_dir():
+            continue
+        has_artifacts = any(
+            (child / filename).exists()
+            for filename in (
+                "run_manifest.json",
+                "metrics.json",
+                "inference_config.json",
+                "model_config.json",
+                "model.joblib",
+                "model_xgb.joblib",
+                "best_model.pt",
+            )
+        )
+        if has_artifacts:
+            artifact_dirs.append(child)
+    return artifact_dirs
+
+
+def _bootstrap_registry_from_artifacts(
+    *,
+    models_root: Path,
+    task: str | None = None,
+    default_system_id: str = DEFAULT_SYSTEM_ID,
+) -> dict[str, Any]:
+    model_type = _infer_model_type(task, models_root)
+    payload = _empty_v2(task=task or model_type)
+    system_id = _normalize_system_id(default_system_id)
+    task_block = _ensure_system_task(payload, system_id, model_type)
+    artifact_dirs = _iter_model_artifact_dirs(models_root)
+    if not artifact_dirs:
+        return payload
+
+    records: list[dict[str, Any]] = []
+    for artifact_dir in artifact_dirs:
+        record = _stage_entry_to_model_record(
+            model_name=artifact_dir.name,
+            models_root=models_root,
+            model_type=model_type,
+            stage="candidate",
+            notes="Auto-discovered from model artifact directory.",
+        )
+        records.append(record)
+
+    records = sorted(records, key=lambda item: float(item.get("rank_score", 0.0) or 0.0), reverse=True)
+    if len(records) == 1:
+        production = dict(records[0])
+        production["status"] = "production"
+        production["notes"] = "Auto-promoted because only one model artifact directory was found."
+        task_block["production"] = production
+    else:
+        task_block["candidates"] = [
+            {**item, "status": "candidate"} for item in records[:MAX_CANDIDATES]
+        ]
+
+    return _sync_legacy_stages(payload, system_id=system_id, model_type=model_type)
+
+
+def _migrate_legacy_model_map(
+    payload: dict[str, Any],
+    *,
+    models_root: Path,
+    task: str | None = None,
+    default_system_id: str = DEFAULT_SYSTEM_ID,
+) -> dict[str, Any]:
+    model_type = _infer_model_type(task or payload.get("task"), models_root)
+    migrated = _empty_v2(task=task or payload.get("task") or model_type)
+    system_id = _normalize_system_id(default_system_id)
+    task_block = _ensure_system_task(migrated, system_id, model_type)
+
+    models = payload.get("models") or {}
+    default_key = str(payload.get("default_model_key") or "").strip()
+    if not isinstance(models, dict) or not models:
+        return migrated
+
+    for model_key, entry in models.items():
+        if not isinstance(entry, dict):
+            continue
+        artifact_dir = str(entry.get("artifact_dir") or model_key).strip()
+        artifact_name = Path(artifact_dir).name
+        record = _stage_entry_to_model_record(
+            model_name=artifact_name,
+            models_root=models_root,
+            model_type=model_type,
+            stage="candidate",
+            notes="Imported from legacy registry mapping.",
+        )
+        record["model_id"] = str(model_key)
+        record["model_name"] = str(entry.get("label") or artifact_name)
+        record["artifact_dir"] = artifact_dir
+        record["run_manifest_path"] = f"{artifact_dir}/run_manifest.json" if (models_root / artifact_dir / "run_manifest.json").exists() else ""
+        if str(model_key).strip() == default_key:
+            record["status"] = "production"
+            task_block["production"] = record
+        else:
+            record["status"] = "candidate"
+            task_block["candidates"].append(record)
+
+    task_block["candidates"] = sorted(
+        task_block["candidates"],
+        key=lambda item: float(item.get("rank_score", 0.0) or 0.0),
+        reverse=True,
+    )[:MAX_CANDIDATES]
+
+    if task_block.get("production") is None and len(task_block.get("candidates") or []) == 1:
+        production = dict(task_block["candidates"][0])
+        production["status"] = "production"
+        production["notes"] = "Auto-promoted from legacy registry because only one model was available."
+        task_block["production"] = production
+        task_block["candidates"] = []
+
+    return _sync_legacy_stages(migrated, system_id=system_id, model_type=model_type)
+
+
 def migrate_v1_to_v2(
     payload: dict[str, Any],
     *,
@@ -313,14 +443,29 @@ def load_registry(
     migrate: bool = True,
     write_back: bool = False,
 ) -> dict[str, Any]:
-    payload = _json_read(registry_path(models_root))
+    models_root = Path(models_root)
+    raw_path = _existing_registry_path(models_root)
+    payload = _json_read(raw_path)
 
     if not payload:
-        payload = _empty_v2(task=task) if migrate else _empty_v1(task=task)
+        payload = _bootstrap_registry_from_artifacts(
+            models_root=models_root,
+            task=task,
+            default_system_id=_normalize_system_id(system_id),
+        )
+        if not payload:
+            payload = _empty_v2(task=task) if migrate else _empty_v1(task=task)
+    elif "models" in payload and "default_model_key" in payload:
+        payload = _migrate_legacy_model_map(
+            payload,
+            models_root=models_root,
+            task=task,
+            default_system_id=_normalize_system_id(system_id),
+        )
     elif migrate:
         payload = migrate_v1_to_v2(
             payload,
-            models_root=Path(models_root),
+            models_root=models_root,
             task=task,
             default_system_id=_normalize_system_id(system_id),
         )

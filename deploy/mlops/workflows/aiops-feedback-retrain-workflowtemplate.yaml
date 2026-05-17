@@ -1,0 +1,100 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: aiops-feedback-retrain
+  namespace: mlops
+spec:
+  entrypoint: retrain
+  serviceAccountName: default
+  arguments:
+    parameters:
+      - name: system-id
+        value: online-boutique
+      - name: anomaly-data-root
+        value: /app/data_anomaly_balanced_v3
+      - name: rca-data-root
+        value: /app/data_rca_balanced_v3
+      - name: feedback-snapshot
+        value: /workspace/feedback/feedback_training_snapshot.jsonl
+      - name: mlflow-tracking-uri
+        value: http://mlflow.mlops.svc.cluster.local:5000
+      - name: anomaly-experiment
+        value: aiops-anomaly-training
+      - name: rca-experiment
+        value: aiops-rca-training
+      - name: dashboard-image
+        value: ghcr.io/huymt05/aiops-dashboard:latest
+      - name: anomaly-image
+        value: ghcr.io/huymt05/aiops-anomaly-service:latest
+      - name: rca-image
+        value: ghcr.io/huymt05/aiops-rca-service:latest
+  templates:
+    - name: retrain
+      dag:
+        tasks:
+          - name: export-feedback-snapshot
+            template: export-feedback-snapshot
+          - name: train-anomaly
+            dependencies: [export-feedback-snapshot]
+            template: train-anomaly
+          - name: train-rca
+            dependencies: [export-feedback-snapshot]
+            template: train-rca
+
+    - name: export-feedback-snapshot
+      container:
+        image: "{{workflow.parameters.dashboard-image}}"
+        command: ["python", "tools/export_feedback_training_set.py"]
+        args:
+          - "--output"
+          - "{{workflow.parameters.feedback-snapshot}}"
+          - "--system-id"
+          - "{{workflow.parameters.system-id}}"
+        env:
+          - name: AIOPS_DASHBOARD_DB_PATH
+            value: /workspace/dashboard-state/aiops_dashboard.sqlite3
+        volumeMounts:
+          - name: workflow-workspace
+            mountPath: /workspace
+
+    - name: train-anomaly
+      container:
+        image: "{{workflow.parameters.anomaly-image}}"
+        command: ["python", "pipeline/rca_data_pipeline/scripts/27_train_anomaly.py"]
+        args:
+          - "--data-root"
+          - "{{workflow.parameters.anomaly-data-root}}"
+          - "--mlflow"
+          - "--mlflow-experiment"
+          - "{{workflow.parameters.anomaly-experiment}}"
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: "{{workflow.parameters.mlflow-tracking-uri}}"
+        volumeMounts:
+          - name: workflow-workspace
+            mountPath: /workspace
+
+    - name: train-rca
+      container:
+        image: "{{workflow.parameters.rca-image}}"
+        command: ["python", "pipeline/rca_data_pipeline/scripts/28_train_rca.py"]
+        args:
+          - "--data-root"
+          - "{{workflow.parameters.rca-data-root}}"
+          - "--mlflow"
+          - "--mlflow-experiment"
+          - "{{workflow.parameters.rca-experiment}}"
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: "{{workflow.parameters.mlflow-tracking-uri}}"
+        volumeMounts:
+          - name: workflow-workspace
+            mountPath: /workspace
+  volumeClaimTemplates:
+    - metadata:
+        name: workflow-workspace
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi

@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: aiops-feedback-retrain-weekly
+  namespace: mlops
+spec:
+  schedule: "0 2 * * 1"
+  concurrencyPolicy: Forbid
+  suspend: true
+  workflowSpec:
+    workflowTemplateRef:
+      name: aiops-feedback-retrain
