@@ -13,11 +13,11 @@ images:
   - name: ghcr.io/huymt05/aiops-anomaly-service
     newTag: sha-29fc750
   - name: ghcr.io/huymt05/aiops-rca-service
-    newTag: sha-29fc750
+    newTag: sha-5ec1fd7
   - name: ghcr.io/huymt05/aiops-orchestrator
     newTag: sha-4502905
   - name: ghcr.io/huymt05/aiops-dashboard
-    newTag: sha-29fc750
+    newTag: sha-5ec1fd7
 patches:
   - target:
       kind: Deployment
