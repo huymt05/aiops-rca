@@ -17,7 +17,7 @@ images:
   - name: ghcr.io/huymt05/aiops-orchestrator
     newTag: sha-396b41c
   - name: ghcr.io/huymt05/aiops-dashboard
-    newTag: sha-396b41c
+    newTag: sha-9292ac4
 patches:
   - target:
       kind: Deployment
