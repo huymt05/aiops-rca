@@ -1083,6 +1083,14 @@ select:focus {
   line-height: 1.5;
 }
 
+.model-details {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+
 .model-card-actions {
   display: flex;
   justify-content: flex-end;

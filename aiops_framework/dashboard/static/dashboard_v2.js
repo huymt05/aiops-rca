@@ -682,9 +682,128 @@ function formatMetricPairs(metrics) {
   if (!metrics || typeof metrics !== "object" || !Object.keys(metrics).length) {
     return "No metrics recorded.";
   }
+
+  const metricSources = [metrics];
+  ["test_metrics", "best_val_metrics", "val_metrics"].forEach((key) => {
+    if (metrics[key] && typeof metrics[key] === "object") {
+      metricSources.push(metrics[key]);
+    }
+  });
+
+  function getMetric(...keys) {
+    for (const source of metricSources) {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          return source[key];
+        }
+      }
+    }
+    return undefined;
+  }
+
+  const compact = [];
+  const isRcaMetric = getMetric("top1_acc", "top3_acc", "mrr", "best_epoch") !== undefined
+    || getMetric("graphs", "test_graphs", "val_graphs") !== undefined;
+
+  if (isRcaMetric) {
+    const top1 = getMetric("top1_acc");
+    const top3 = getMetric("top3_acc");
+    const mrr = getMetric("mrr");
+    const bestEpoch = getMetric("best_epoch");
+    const testGraphs = getMetric("graphs", "test_graphs");
+    if (top1 !== undefined) compact.push(`top1=${Number(top1).toFixed(4)}`);
+    if (top3 !== undefined) compact.push(`top3=${Number(top3).toFixed(4)}`);
+    if (mrr !== undefined) compact.push(`mrr=${Number(mrr).toFixed(4)}`);
+    if (bestEpoch !== undefined) compact.push(`best_epoch=${Number(bestEpoch).toFixed(0)}`);
+    if (testGraphs !== undefined) compact.push(`graphs=${Number(testGraphs).toFixed(0)}`);
+  } else {
+    const f1 = getMetric("f1_anomaly", "f1", "f1_score");
+    const balancedAccuracy = getMetric("balanced_accuracy");
+    const rocAuc = getMetric("roc_auc", "auc");
+    const prAuc = getMetric("average_precision", "pr_auc");
+    const threshold = getMetric("threshold", "best_threshold");
+    if (f1 !== undefined) compact.push(`f1=${Number(f1).toFixed(4)}`);
+    if (balancedAccuracy !== undefined) compact.push(`balanced_accuracy=${Number(balancedAccuracy).toFixed(4)}`);
+    if (rocAuc !== undefined) compact.push(`roc_auc=${Number(rocAuc).toFixed(4)}`);
+    if (prAuc !== undefined) compact.push(`average_precision=${Number(prAuc).toFixed(4)}`);
+    if (threshold !== undefined) compact.push(`threshold=${Number(threshold).toFixed(4)}`);
+  }
+
+  if (compact.length) {
+    return compact.join(" | ");
+  }
+
   return Object.entries(metrics)
+    .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+    .slice(0, 8)
     .map(([key, value]) => `${key}=${typeof value === "number" ? value.toFixed(4) : String(value)}`)
-    .join(" | ");
+    .join(" | ") || "No scalar metrics recorded.";
+}
+
+function summarizeModelDetails(metrics) {
+  if (!metrics || typeof metrics !== "object" || !Object.keys(metrics).length) {
+    return "";
+  }
+
+  const entries = [];
+  const scalar = [];
+
+  for (const [key, value] of Object.entries(metrics)) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+    if (typeof value === "number") {
+      scalar.push(`${key}=${value.toFixed(4)}`);
+    } else if (typeof value === "string" || typeof value === "boolean") {
+      scalar.push(`${key}=${String(value)}`);
+    } else if (Array.isArray(value)) {
+      entries.push(`${key}[${value.length}]`);
+    } else if (typeof value === "object") {
+      entries.push(`${key}{${Object.keys(value).length}}`);
+    }
+  }
+
+  return [...scalar.slice(0, 6), ...entries.slice(0, 6)].join(" | ");
+}
+
+function displayRankScore(item) {
+  const raw = Number(item?.rank_score ?? 0);
+  if (raw > 0) {
+    return raw;
+  }
+  const metrics = item?.metrics || {};
+  const candidates = [
+    metrics,
+    metrics.test_metrics,
+    metrics.best_val_metrics,
+    metrics.val_metrics,
+  ].filter((entry) => entry && typeof entry === "object");
+
+  function pick(...keys) {
+    for (const source of candidates) {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          return Number(source[key]);
+        }
+      }
+    }
+    return 0;
+  }
+
+  const isRca = pick("top1_acc", "top3_acc", "mrr", "best_epoch") > 0;
+  if (isRca) {
+    return 0.5 * pick("top3_acc") + 0.3 * pick("mrr") + 0.2 * pick("top1_acc");
+  }
+  const prAuc = pick("average_precision", "pr_auc");
+  if (prAuc > 0) {
+    return 0.45 * pick("f1_anomaly", "f1", "f1_score")
+      + 0.25 * pick("balanced_accuracy")
+      + 0.20 * prAuc
+      + 0.10 * pick("roc_auc", "auc");
+  }
+  return 0.55 * pick("f1_anomaly", "f1", "f1_score")
+    + 0.30 * pick("balanced_accuracy")
+    + 0.15 * pick("roc_auc", "auc");
 }
 
 function formatMlflowMeta(item) {
@@ -714,11 +833,12 @@ function renderModelCard(systemId, modelType, item, canPromote) {
     <article class="model-card">
       <div><strong>${escapeHtml(item.model_name || item.model_id || "unknown_model")}</strong></div>
       <div class="model-meta">
-        <span>score=${Number(item.rank_score ?? 0).toFixed(4)}</span>
+        <span>score=${displayRankScore(item).toFixed(4)}</span>
         <span>trained=${escapeHtml(formatTimestamp(item.trained_at))}</span>
         <span>status=${escapeHtml(item.status || modelType)}</span>
       </div>
       <div class="model-metrics">${escapeHtml(formatMetricPairs(item.metrics || {}))}</div>
+      ${summarizeModelDetails(item.metrics || {}) ? `<div class="model-details">${escapeHtml(summarizeModelDetails(item.metrics || {}))}</div>` : ""}
       <div class="model-meta">
         <span>artifact=${escapeHtml(item.artifact_dir || "-")}</span>
       </div>
@@ -762,6 +882,7 @@ function renderModelSummary(payload) {
         <span>updated=${escapeHtml(formatTimestamp(item?.updated_at))}</span>
       </div>
       <div class="model-metrics">${escapeHtml(formatMetricPairs(item?.metrics || {}))}</div>
+      ${summarizeModelDetails(item?.metrics || {}) ? `<div class="model-details">${escapeHtml(summarizeModelDetails(item?.metrics || {}))}</div>` : ""}
       <div class="model-meta">
         <span>artifact=${escapeHtml(item?.artifact_dir || "-")}</span>
       </div>
