@@ -483,39 +483,6 @@
       "rca": {
         "candidates": [
           {
-            "artifact_dir": "re2_ob_hgnn_rca",
-            "dataset": "RCAEval RE2-OB",
-            "display_name": "HGNN RCA",
-            "legacy_model_type": "hetero_telemetry_gnn",
-            "metrics": {
-              "best_val_metrics": {
-                "mrr": 1.0,
-                "num_graphs": 15,
-                "top1_acc": 1.0,
-                "top3_acc": 1.0
-              },
-              "test_metrics": {
-                "mrr": 1.0,
-                "num_graphs": 15,
-                "top1_acc": 1.0,
-                "top3_acc": 1.0
-              },
-              "top_k_default": 3
-            },
-            "model_id": "re2_ob_hgnn_rca",
-            "model_name": "re2_ob_hgnn_rca",
-            "model_type": "rca",
-            "model_version": "re2_ob_hgnn_rca",
-            "notes": "Imported from legacy RCA artifact registry.",
-            "rank_score": 1.0,
-            "run_manifest_path": "",
-            "source_registry": "legacy_rca_model_registry",
-            "status": "candidate",
-            "top_k_default": 3,
-            "trained_at": "",
-            "updated_at": ""
-          },
-          {
             "artifact_dir": "re2_ob_gat_baseline",
             "dataset": "RCAEval RE2-OB",
             "display_name": "GAT baseline",
@@ -578,54 +545,88 @@
             "updated_at": ""
           }
         ],
-        "previous": [],
+        "previous": [
+          {
+            "artifact_dir": "rca_gat_like",
+            "metrics": {
+              "best_epoch": 34,
+              "best_val_metrics": {
+                "graphs": 15,
+                "mrr": 0.7911111111111111,
+                "top1_acc": 0.6666666666666666,
+                "top3_acc": 0.9333333333333333
+              },
+              "config": {
+                "dropout": 0.2,
+                "epochs": 140,
+                "hidden_dim": 48,
+                "lr": 0.001,
+                "patience": 24,
+                "seed": 42,
+                "weight_decay": 0.0001
+              },
+              "data_root": "E:\\mlops_train_handoff\\datasets\\rca_train_dataset",
+              "device": "cpu",
+              "test_graphs": 20,
+              "test_metrics": {
+                "graphs": 20,
+                "mrr": 0.6224999999999999,
+                "top1_acc": 0.4,
+                "top3_acc": 0.8
+              },
+              "total_graphs_loaded": 96,
+              "train_graphs": 34,
+              "val_graphs": 15
+            },
+            "mlflow_artifact_uri": "mlflow-artifacts:/4/b8fd836903ba47828b6f1003487e9fab/artifacts",
+            "mlflow_experiment_id": "4",
+            "mlflow_experiment_name": "aiops-rca-training",
+            "mlflow_run_id": "b8fd836903ba47828b6f1003487e9fab",
+            "mlflow_tracking_uri": "http://127.0.0.1:5000",
+            "model_id": "rca_gat_like",
+            "model_name": "rca_gat_like",
+            "model_type": "rca",
+            "model_version": "rca_gat_like",
+            "notes": "Archived because the current runtime model definition is incompatible with this checkpoint.",
+            "rank_score": 0.66675,
+            "run_manifest_path": "rca_gat_like/run_manifest.json",
+            "status": "previous",
+            "trained_at": "2026-05-17T06:17:41.114386+00:00",
+            "updated_at": "2026-05-17T06:17:44.270864+00:00"
+          }
+        ],
         "production": {
-          "artifact_dir": "rca_gat_like",
+          "artifact_dir": "re2_ob_hgnn_rca",
+          "dataset": "RCAEval RE2-OB",
+          "display_name": "HGNN RCA",
+          "legacy_model_type": "hetero_telemetry_gnn",
           "metrics": {
-            "best_epoch": 34,
             "best_val_metrics": {
-              "graphs": 15,
-              "mrr": 0.7911111111111111,
-              "top1_acc": 0.6666666666666666,
-              "top3_acc": 0.9333333333333333
+              "mrr": 1.0,
+              "num_graphs": 15,
+              "top1_acc": 1.0,
+              "top3_acc": 1.0
             },
-            "config": {
-              "dropout": 0.2,
-              "epochs": 140,
-              "hidden_dim": 48,
-              "lr": 0.001,
-              "patience": 24,
-              "seed": 42,
-              "weight_decay": 0.0001
-            },
-            "data_root": "E:\\mlops_train_handoff\\datasets\\rca_train_dataset",
-            "device": "cpu",
-            "test_graphs": 20,
             "test_metrics": {
-              "graphs": 20,
-              "mrr": 0.6224999999999999,
-              "top1_acc": 0.4,
-              "top3_acc": 0.8
+              "mrr": 1.0,
+              "num_graphs": 15,
+              "top1_acc": 1.0,
+              "top3_acc": 1.0
             },
-            "total_graphs_loaded": 96,
-            "train_graphs": 34,
-            "val_graphs": 15
+            "top_k_default": 3
           },
-          "mlflow_artifact_uri": "mlflow-artifacts:/4/b8fd836903ba47828b6f1003487e9fab/artifacts",
-          "mlflow_experiment_id": "4",
-          "mlflow_experiment_name": "aiops-rca-training",
-          "mlflow_run_id": "b8fd836903ba47828b6f1003487e9fab",
-          "mlflow_tracking_uri": "http://127.0.0.1:5000",
-          "model_id": "rca_gat_like",
-          "model_name": "rca_gat_like",
+          "model_id": "re2_ob_hgnn_rca",
+          "model_name": "re2_ob_hgnn_rca",
           "model_type": "rca",
-          "model_version": "rca_gat_like",
+          "model_version": "re2_ob_hgnn_rca",
           "notes": "Promoted RCA production model.",
-          "rank_score": 0.66675,
-          "run_manifest_path": "rca_gat_like/run_manifest.json",
+          "rank_score": 1.0,
+          "run_manifest_path": "",
+          "source_registry": "legacy_rca_model_registry",
           "status": "production",
-          "trained_at": "2026-05-17T06:17:41.114386+00:00",
-          "updated_at": "2026-05-17T06:17:44.270864+00:00"
+          "top_k_default": 3,
+          "trained_at": "",
+          "updated_at": ""
         }
       }
     }
