@@ -686,6 +686,24 @@ function formatMetricPairs(metrics) {
     .join(" | ");
 }
 
+function formatMlflowMeta(item) {
+  if (!item || typeof item !== "object") {
+    return "";
+  }
+
+  const parts = [];
+  if (item.mlflow_experiment_name) {
+    parts.push(`<span>experiment=${escapeHtml(item.mlflow_experiment_name)}</span>`);
+  }
+  if (item.mlflow_run_id) {
+    parts.push(`<span>run=${escapeHtml(item.mlflow_run_id)}</span>`);
+  }
+  if (item.mlflow_artifact_uri) {
+    parts.push(`<span class="model-uri">artifact_uri=${escapeHtml(item.mlflow_artifact_uri)}</span>`);
+  }
+  return parts.join("");
+}
+
 function renderModelCard(systemId, modelType, item, canPromote) {
   if (!item) {
     return `<div class="history-empty">No ${escapeHtml(modelType)} model available.</div>`;
@@ -703,6 +721,7 @@ function renderModelCard(systemId, modelType, item, canPromote) {
       <div class="model-meta">
         <span>artifact=${escapeHtml(item.artifact_dir || "-")}</span>
       </div>
+      ${formatMlflowMeta(item) ? `<div class="model-meta model-meta-mlflow">${formatMlflowMeta(item)}</div>` : ""}
       <div class="model-card-actions">
         <button
           type="button"
@@ -745,6 +764,7 @@ function renderModelSummary(payload) {
       <div class="model-meta">
         <span>artifact=${escapeHtml(item?.artifact_dir || "-")}</span>
       </div>
+      ${formatMlflowMeta(item) ? `<div class="model-meta model-meta-mlflow">${formatMlflowMeta(item)}</div>` : ""}
     </article>
   `).join("");
 
