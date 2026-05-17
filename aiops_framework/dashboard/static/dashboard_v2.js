@@ -121,6 +121,7 @@ const anomalyCandidates = document.getElementById("anomalyCandidates");
 const rcaCandidates = document.getElementById("rcaCandidates");
 
 let latestAnalysis = null;
+let selectedLogService = null;
 let systems = [];
 let managedUsers = [];
 let currentView = "dashboard";
@@ -892,16 +893,29 @@ function renderAnalysis(result) {
   setTopbarBadge(topbarAnomaly, isAnomaly ? "Alert" : "OK", isAnomaly ? "bad" : "ok");
 
   if (rca && rca.top1) {
+    const rankedServices = (rca.topk || []).map((item) => item.service_name).filter(Boolean);
+    if (!selectedLogService || !rankedServices.includes(selectedLogService)) {
+      selectedLogService = rca.top1.service_name;
+    }
+
     top1Service.textContent = rca.top1.service_name;
     top1Score.textContent = `score: ${Number(rca.top1.score || 0).toFixed(3)} | model: ${rcaModelLabel}`;
     topkList.innerHTML = (rca.topk || []).map((item, idx) => `
       <li>
-        <span><strong>#${idx + 1}</strong> <span class="rank-service">${item.service_name}</span></span>
-        <span>${Number(item.score || 0).toFixed(3)}</span>
+        <button
+          type="button"
+          class="rank-service-button ${item.service_name === selectedLogService ? "selected" : ""}"
+          data-log-service="${escapeHtml(item.service_name)}"
+          title="Load recent logs for ${escapeHtml(item.service_name)}"
+        >
+          <span><strong>#${idx + 1}</strong> <span class="rank-service">${item.service_name}</span></span>
+          <span>${Number(item.score || 0).toFixed(3)}</span>
+        </button>
       </li>
     `).join("");
     setTopbarBadge(topbarRca, rca.top1.service_name, "warn");
   } else {
+    selectedLogService = null;
     top1Service.textContent = "Skipped";
     top1Score.textContent = `score: - | model: ${rcaModelLabel}`;
     topkList.innerHTML = `<li><span>RCA was not triggered for this run.</span><span>-</span></li>`;
@@ -926,8 +940,8 @@ function renderAnalysis(result) {
   // } else {
   //   logValidationBox.textContent = "No anomaly RCA target yet.";
   // }
-  if (rca?.top1?.service_name) {
-    refreshLogValidation(rca.top1.service_name);
+  if (selectedLogService) {
+    refreshLogValidation(selectedLogService);
   } else {
     logValidationBox.innerHTML = `<div class="history-empty">No anomaly RCA target yet.</div>`;
   }
@@ -1574,6 +1588,22 @@ systemSelect.addEventListener("change", async () => {
 
 anomalyCandidates.addEventListener("click", handleModelCardClick);
 rcaCandidates.addEventListener("click", handleModelCardClick);
+topkList.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-log-service]");
+  if (!button) {
+    return;
+  }
+  const serviceName = button.dataset.logService;
+  if (!serviceName) {
+    return;
+  }
+  selectedLogService = serviceName;
+  if (latestAnalysis) {
+    renderAnalysis(latestAnalysis);
+  } else {
+    await refreshLogValidation(serviceName);
+  }
+});
 for (const item of navItems) {
   item.addEventListener("click", async () => {
     setActiveNav(item);
