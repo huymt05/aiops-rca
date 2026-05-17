@@ -18,7 +18,7 @@ spec:
       containers:
         - name: aiops-dashboard
           image: ghcr.io/huymt05/aiops-dashboard:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8010
               name: http

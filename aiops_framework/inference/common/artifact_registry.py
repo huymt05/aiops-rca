@@ -116,10 +116,17 @@ def _default_rank_score(model_type: str, metrics: dict[str, Any]) -> float:
     if not metrics:
         return 0.0
 
+    search_spaces: list[dict[str, Any]] = [metrics]
+    for key in ("test_metrics", "best_val_metrics", "val_metrics", "evaluation", "eval_metrics"):
+        nested = metrics.get(key)
+        if isinstance(nested, dict):
+            search_spaces.append(nested)
+
     def num(*keys: str, default: float = 0.0) -> float:
-        for key in keys:
-            if key in metrics:
-                return _to_float(metrics.get(key), default)
+        for space in search_spaces:
+            for key in keys:
+                if key in space:
+                    return _to_float(space.get(key), default)
         return default
 
     if model_type == "rca":
@@ -222,6 +229,74 @@ def _normalize_candidate(candidate: dict[str, Any], model_type: str) -> dict[str
     item["updated_at"] = now_iso()
     item["status"] = "candidate"
     return item
+
+
+def _normalize_model_record(record: dict[str, Any], model_type: str, status: str) -> dict[str, Any]:
+    item = dict(record)
+    model_name = str(
+        item.get("model_name")
+        or item.get("model_id")
+        or Path(str(item.get("artifact_dir", ""))).name
+        or "unknown_model"
+    )
+    metrics = item.get("metrics") or {}
+    if not isinstance(metrics, dict):
+        metrics = {}
+
+    item.setdefault("model_id", model_name)
+    item["model_name"] = model_name
+    item.setdefault("model_version", str(item.get("version") or item.get("model_version") or model_name))
+    item["model_type"] = model_type
+    item["artifact_dir"] = str(item.get("artifact_dir") or model_name)
+    item["run_manifest_path"] = str(item.get("run_manifest_path") or "")
+    item["metrics"] = metrics
+    computed_score = _default_rank_score(model_type, metrics)
+    current_score = item.get("rank_score")
+    try:
+        current_score_value = float(current_score)
+    except (TypeError, ValueError):
+        current_score_value = None
+    if current_score_value is None or (current_score_value <= 0.0 and computed_score > 0.0):
+        item["rank_score"] = float(computed_score)
+    else:
+        item["rank_score"] = current_score_value
+    item.setdefault("trained_at", now_iso())
+    item["updated_at"] = str(item.get("updated_at") or now_iso())
+    item["status"] = status
+    return item
+
+
+def _normalize_v2_payload_records(payload: dict[str, Any]) -> dict[str, Any]:
+    systems = payload.get("systems") or {}
+    if not isinstance(systems, dict):
+        return payload
+    for system_id, system_block in systems.items():
+        if not isinstance(system_block, dict):
+            continue
+        for model_type, task_block in system_block.items():
+            if not isinstance(task_block, dict):
+                continue
+            production = task_block.get("production")
+            if isinstance(production, dict):
+                task_block["production"] = _normalize_model_record(production, str(model_type), "production")
+            previous = task_block.get("previous") or []
+            task_block["previous"] = [
+                _normalize_model_record(item, str(model_type), "previous")
+                for item in previous
+                if isinstance(item, dict)
+            ]
+            candidates = task_block.get("candidates") or []
+            task_block["candidates"] = sorted(
+                [
+                    _normalize_model_record(item, str(model_type), "candidate")
+                    for item in candidates
+                    if isinstance(item, dict)
+                ],
+                key=lambda item: float(item.get("rank_score", 0.0) or 0.0),
+                reverse=True,
+            )[:MAX_CANDIDATES]
+            _sync_legacy_stages(payload, system_id=str(system_id), model_type=str(model_type))
+    return payload
 
 
 def _sync_legacy_stages(payload: dict[str, Any], *, system_id: str, model_type: str) -> dict[str, Any]:
@@ -481,6 +556,7 @@ def load_registry(
         payload.setdefault("stages", {})
         if task and not payload.get("task"):
             payload["task"] = task
+        payload = _normalize_v2_payload_records(payload)
         if write_back:
             write_registry(models_root, payload)
 

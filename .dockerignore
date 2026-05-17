@@ -1,0 +1,23 @@
+.git
+.github
+.venv
+__pycache__/
+*.pyc
+artifacts/
+
+# Exclude large datasets that are not needed in container builds.
+data/
+data_anomaly_balanced/
+data_anomaly_balanced_v2/
+data_anomaly_balanced_v3_clean/
+data_rca_balanced/
+data_rca_balanced_v2/
+
+# Keep only runtime model registries/artifacts needed by service images.
+data_anomaly_balanced_v3/*
+!data_anomaly_balanced_v3/models/
+!data_anomaly_balanced_v3/models/**
+
+data_rca_balanced_v3/*
+!data_rca_balanced_v3/models/
+!data_rca_balanced_v3/models/**

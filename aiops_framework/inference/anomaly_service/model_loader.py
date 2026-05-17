@@ -9,7 +9,11 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from aiops_framework.inference.common.artifact_registry import DEFAULT_STAGE, resolve_artifact_dir
+from aiops_framework.inference.common.artifact_registry import (
+    DEFAULT_STAGE,
+    DEFAULT_SYSTEM_ID,
+    resolve_artifact_dir,
+)
 
 
 DEFAULT_MODEL_ROOT = Path(
@@ -19,9 +23,40 @@ DEFAULT_MODEL_ROOT = Path(
     )
 )
 DEFAULT_MODEL_STAGE = os.environ.get("AIOPS_ANOMALY_MODEL_STAGE", DEFAULT_STAGE).strip() or DEFAULT_STAGE
+DEFAULT_SYSTEM = (
+    os.environ.get("AIOPS_ANOMALY_SYSTEM_ID")
+    or os.environ.get("AIOPS_SYSTEM_ID")
+    or DEFAULT_SYSTEM_ID
+).strip() or DEFAULT_SYSTEM_ID
 _ARTIFACT_DIR_OVERRIDE = os.environ.get("AIOPS_ANOMALY_ARTIFACT_DIR", "").strip()
-DEFAULT_ARTIFACT_DIR = Path(_ARTIFACT_DIR_OVERRIDE) if _ARTIFACT_DIR_OVERRIDE else resolve_artifact_dir(DEFAULT_MODEL_ROOT, DEFAULT_MODEL_STAGE)
 THRESHOLD_OVERRIDE = os.environ.get("AIOPS_ANOMALY_THRESHOLD_OVERRIDE", "").strip()
+
+
+def _resolve_stage_dir(stage: str) -> Path:
+    try:
+        return Path(
+            resolve_artifact_dir(
+                DEFAULT_MODEL_ROOT,
+                stage,
+                system_id=DEFAULT_SYSTEM,
+                model_type="anomaly",
+                task="anomaly",
+            )
+        )
+    except (FileNotFoundError, ValueError):
+        return Path(resolve_artifact_dir(DEFAULT_MODEL_ROOT, stage))
+
+
+def _resolve_default_artifact_dir() -> Path:
+    if _ARTIFACT_DIR_OVERRIDE:
+        return Path(_ARTIFACT_DIR_OVERRIDE)
+    try:
+        return _resolve_stage_dir(DEFAULT_MODEL_STAGE)
+    except FileNotFoundError:
+        return _resolve_stage_dir("candidate")
+
+
+DEFAULT_ARTIFACT_DIR = _resolve_default_artifact_dir()
 
 
 @dataclass

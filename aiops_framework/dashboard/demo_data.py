@@ -4,9 +4,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-import torch
-
-
 DEFAULT_GRAPH_ROOT = Path(
     os.environ.get(
         "AIOPS_DASHBOARD_GRAPH_ROOT",
@@ -69,6 +66,13 @@ def load_graph_payload(sample_name: str) -> dict[str, Any]:
     path = DEFAULT_GRAPH_ROOT / sample_name
     if not path.exists():
         raise FileNotFoundError(f"Graph tensor not found: {path}")
+
+    try:
+        import torch
+    except ImportError as exc:
+        raise RuntimeError(
+            "Demo graph sample loading requires the optional 'torch' dependency, which is not installed in this dashboard runtime."
+        ) from exc
 
     obj = torch.load(path, map_location="cpu")
     edge_rows = obj["edge_index"].t().tolist() if obj["edge_index"].numel() > 0 else []

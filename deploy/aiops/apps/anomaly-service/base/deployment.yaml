@@ -22,8 +22,12 @@ spec:
             - containerPort: 8000
               name: http
           env:
-            - name: AIOPS_ANOMALY_ARTIFACT_DIR
-              value: /app/models/anomaly_xgb_lgbm
+            - name: AIOPS_ANOMALY_MODEL_ROOT
+              value: /app/models
+            - name: AIOPS_ANOMALY_MODEL_STAGE
+              value: production
+            - name: AIOPS_ANOMALY_SYSTEM_ID
+              value: online-boutique
           readinessProbe:
             httpGet:
               path: /health

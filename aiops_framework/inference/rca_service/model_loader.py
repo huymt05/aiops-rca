@@ -9,7 +9,12 @@ from typing import Any
 import joblib
 import torch
 
-from aiops_framework.inference.common.artifact_registry import DEFAULT_STAGE, resolve_artifact_dir
+from aiops_framework.inference.common.artifact_registry import (
+    DEFAULT_STAGE,
+    DEFAULT_SYSTEM_ID,
+    get_model_summary,
+    resolve_artifact_dir,
+)
 
 from .model_def import HeteroTelemetryGNN, SimpleGraphAttention, infer_feature_groups
 
@@ -21,8 +26,28 @@ DEFAULT_MODEL_ROOT = Path(
     )
 )
 DEFAULT_MODEL_STAGE = os.environ.get("AIOPS_RCA_MODEL_STAGE", DEFAULT_STAGE).strip() or DEFAULT_STAGE
+DEFAULT_SYSTEM = (
+    os.environ.get("AIOPS_RCA_SYSTEM_ID")
+    or os.environ.get("AIOPS_SYSTEM_ID")
+    or DEFAULT_SYSTEM_ID
+).strip() or DEFAULT_SYSTEM_ID
 DEFAULT_MODEL_REGISTRY_PATH = os.environ.get("AIOPS_RCA_MODEL_REGISTRY_PATH", "").strip()
 DEFAULT_MODEL_REGISTRY_JSON = os.environ.get("AIOPS_RCA_MODEL_REGISTRY_JSON", "").strip()
+
+
+def _resolve_stage_dir(stage: str) -> Path:
+    try:
+        return Path(
+            resolve_artifact_dir(
+                DEFAULT_MODEL_ROOT,
+                stage,
+                system_id=DEFAULT_SYSTEM,
+                model_type="rca",
+                task="rca",
+            )
+        )
+    except (FileNotFoundError, ValueError):
+        return Path(resolve_artifact_dir(DEFAULT_MODEL_ROOT, stage))
 
 
 def _resolve_default_artifact_dir() -> Path:
@@ -30,11 +55,14 @@ def _resolve_default_artifact_dir() -> Path:
     if explicit:
         return Path(explicit)
     try:
-        return Path(resolve_artifact_dir(DEFAULT_MODEL_ROOT, DEFAULT_MODEL_STAGE))
+        return _resolve_stage_dir(DEFAULT_MODEL_STAGE)
     except FileNotFoundError:
-        if DEFAULT_MODEL_REGISTRY_PATH or DEFAULT_MODEL_REGISTRY_JSON:
-            return Path(".")
-        raise
+        try:
+            return _resolve_stage_dir("candidate")
+        except FileNotFoundError:
+            if DEFAULT_MODEL_REGISTRY_PATH or DEFAULT_MODEL_REGISTRY_JSON:
+                return Path(".")
+            raise
 
 
 DEFAULT_ARTIFACT_DIR = _resolve_default_artifact_dir()
@@ -89,11 +117,49 @@ def _load_registry_payload() -> tuple[dict[str, Any] | None, Path | None]:
     return None, None
 
 
+def _registry_from_summary() -> tuple[str, dict[str, ModelRegistryEntry]] | None:
+    summary = get_model_summary(
+        DEFAULT_MODEL_ROOT,
+        system_id=DEFAULT_SYSTEM,
+        model_type="rca",
+        task="rca",
+    )
+    records: list[dict[str, Any]] = []
+    if isinstance(summary.get("production"), dict):
+        records.append(summary["production"])
+    records.extend(item for item in (summary.get("candidates") or []) if isinstance(item, dict))
+    if not records:
+        return None
+
+    registry: dict[str, ModelRegistryEntry] = {}
+    default_key: str | None = None
+    for record in records:
+        model_key = str(
+            record.get("model_id")
+            or record.get("model_name")
+            or Path(str(record.get("artifact_dir") or "")).name
+            or "rca_model"
+        ).strip()
+        artifact_dir = Path(str(record.get("artifact_dir") or model_key).strip())
+        if not artifact_dir.is_absolute():
+            artifact_dir = (DEFAULT_MODEL_ROOT / artifact_dir).resolve()
+        label = str(record.get("model_name") or model_key).strip() or model_key
+        registry[model_key] = ModelRegistryEntry(model_key=model_key, artifact_dir=artifact_dir, label=label)
+        if record.get("status") == "production" and default_key is None:
+            default_key = model_key
+
+    default_key = default_key or next(iter(registry.keys()))
+    return default_key, registry
+
+
 def load_model_registry(default_artifact_dir: Path | None = None) -> tuple[str, dict[str, ModelRegistryEntry]]:
     artifact_dir = Path(default_artifact_dir or DEFAULT_ARTIFACT_DIR)
     payload, base_dir = _load_registry_payload()
 
     if not payload:
+        registry_from_summary = _registry_from_summary()
+        if registry_from_summary is not None:
+            return registry_from_summary
         default_key = str(os.environ.get("AIOPS_RCA_DEFAULT_MODEL_KEY", "")).strip() or artifact_dir.name
         return default_key, {
             default_key: ModelRegistryEntry(model_key=default_key, artifact_dir=artifact_dir, label=default_key)
