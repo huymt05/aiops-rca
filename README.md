@@ -382,13 +382,3 @@ Mở trình duyệt:
 - tăng cường cô lập hệ thống cho multi-system observability
 - cải thiện kiểm tra rollout health và tinh chỉnh tài nguyên trên Minikube
 
-## Ghi chú
-
-Repository này không còn chỉ là bản upstream `microservices-demo`.  
-Dự án đã được tùy chỉnh thành một **đồ án tốt nghiệp AIOps** tập trung vào:
-
-- phát hiện bất thường runtime
-- RCA cho microservices
-- xử lý incident có operator trong vòng lặp
-- triển khai GitOps
-- giám sát nhiều hệ thống trên Kubernetes
