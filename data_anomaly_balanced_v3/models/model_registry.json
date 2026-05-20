@@ -2,6 +2,11 @@
   "schema_version": "2.0",
   "stages": {
     "candidate": {
+      "model_name": "feedback_online-boutique_anomaly_20260519T125952Z",
+      "notes": "Updated after anomaly training.",
+      "updated_at": "2026-05-19T13:00:02.972956+00:00"
+    },
+    "production": {
       "model_name": "anomaly_xgb_lgbm",
       "notes": "Updated after anomaly training.",
       "updated_at": "2026-05-17T06:16:43.027926+00:00"
@@ -10,7 +15,530 @@
   "systems": {
     "online-boutique": {
       "anomaly": {
-        "candidates": [],
+        "candidates": [
+          {
+            "artifact_dir": "feedback_online-boutique_anomaly_20260519T125952Z",
+            "metrics": {
+              "best_params": {
+                "colsample_bytree": 0.8,
+                "kind": "xgb",
+                "learning_rate": 0.03,
+                "max_depth": 5,
+                "n_estimators": 320,
+                "subsample": 0.9
+              },
+              "best_threshold": 0.7200000000000002,
+              "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
+              "ensemble_used": false,
+              "feature_columns": [
+                "trace_count",
+                "service_count",
+                "service_role_count",
+                "avg_trace_duration_ms",
+                "p95_trace_duration_ms",
+                "max_trace_duration_ms",
+                "error_trace_ratio",
+                "error_span_ratio",
+                "request_fanout_mean",
+                "critical_path_mean_ms",
+                "latency_cv",
+                "mean_span_count",
+                "call_type_diversity",
+                "entrypoint_trace_ratio",
+                "stateful_trace_ratio"
+              ],
+              "feature_file": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\processed\\anomaly\\window_features_labeled.parquet",
+              "optimize_for": "anomaly",
+              "test_metrics": {
+                "average_precision": 0.6772970887554222,
+                "balanced_accuracy": 0.6931818181818182,
+                "confusion_matrix": {
+                  "fn": 7,
+                  "fp": 1,
+                  "tn": 32,
+                  "tp": 5
+                },
+                "f1_anomaly": 0.5555555555555556,
+                "precision_anomaly": 0.8333333333333334,
+                "recall_anomaly": 0.4166666666666667,
+                "roc_auc": 0.8005050505050505,
+                "specificity": 0.9696969696969697,
+                "threshold": 0.7200000000000002
+              },
+              "test_rows": 45,
+              "test_runs": 19,
+              "threshold_bias": 0.0,
+              "train_rows": 96,
+              "train_runs": 48,
+              "tuning_results": [
+                {
+                  "params": {
+                    "colsample_bytree": 0.9,
+                    "kind": "xgb",
+                    "learning_rate": 0.05,
+                    "max_depth": 4,
+                    "n_estimators": 240,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7581333306384239,
+                  "val_metrics": {
+                    "average_precision": 0.7421734443635971,
+                    "balanced_accuracy": 0.8177419354838709,
+                    "confusion_matrix": {
+                      "fn": 3,
+                      "fp": 2,
+                      "tn": 29,
+                      "tp": 7
+                    },
+                    "f1_anomaly": 0.7368421052631579,
+                    "precision_anomaly": 0.7777777777777778,
+                    "recall_anomaly": 0.7,
+                    "roc_auc": 0.7870967741935483,
+                    "specificity": 0.9354838709677419,
+                    "threshold": 0.42000000000000004
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.8,
+                    "kind": "xgb",
+                    "learning_rate": 0.03,
+                    "max_depth": 5,
+                    "n_estimators": 320,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7649114832535886,
+                  "val_metrics": {
+                    "average_precision": 0.7620574162679425,
+                    "balanced_accuracy": 0.8,
+                    "confusion_matrix": {
+                      "fn": 4,
+                      "fp": 0,
+                      "tn": 31,
+                      "tp": 6
+                    },
+                    "f1_anomaly": 0.75,
+                    "precision_anomaly": 1.0,
+                    "recall_anomaly": 0.6,
+                    "roc_auc": 0.7935483870967742,
+                    "specificity": 1.0,
+                    "threshold": 0.7200000000000002
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.9,
+                    "kind": "lgbm",
+                    "learning_rate": 0.05,
+                    "max_depth": -1,
+                    "n_estimators": 220,
+                    "num_leaves": 31,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.6874556445668251,
+                  "val_metrics": {
+                    "average_precision": 0.6442674701459531,
+                    "balanced_accuracy": 0.7677419354838709,
+                    "confusion_matrix": {
+                      "fn": 4,
+                      "fp": 2,
+                      "tn": 29,
+                      "tp": 6
+                    },
+                    "f1_anomaly": 0.6666666666666666,
+                    "precision_anomaly": 0.75,
+                    "recall_anomaly": 0.6,
+                    "roc_auc": 0.7483870967741935,
+                    "specificity": 0.9354838709677419,
+                    "threshold": 0.6600000000000001
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.8,
+                    "kind": "lgbm",
+                    "learning_rate": 0.03,
+                    "max_depth": -1,
+                    "n_estimators": 320,
+                    "num_leaves": 63,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.6418218210756161,
+                  "val_metrics": {
+                    "average_precision": 0.6359310886516768,
+                    "balanced_accuracy": 0.7548387096774194,
+                    "confusion_matrix": {
+                      "fn": 2,
+                      "fp": 9,
+                      "tn": 22,
+                      "tp": 8
+                    },
+                    "f1_anomaly": 0.5925925925925926,
+                    "precision_anomaly": 0.47058823529411764,
+                    "recall_anomaly": 0.8,
+                    "roc_auc": 0.7451612903225806,
+                    "specificity": 0.7096774193548387,
+                    "threshold": 0.30000000000000004
+                  }
+                },
+                {
+                  "params": {
+                    "kind": "gbrt",
+                    "learning_rate": 0.05,
+                    "max_depth": 3
+                  },
+                  "ranking_score": 0.761173193240256,
+                  "val_metrics": {
+                    "average_precision": 0.7573727573727573,
+                    "balanced_accuracy": 0.8177419354838709,
+                    "confusion_matrix": {
+                      "fn": 3,
+                      "fp": 2,
+                      "tn": 29,
+                      "tp": 7
+                    },
+                    "f1_anomaly": 0.7368421052631579,
+                    "precision_anomaly": 0.7777777777777778,
+                    "recall_anomaly": 0.7,
+                    "roc_auc": 0.7483870967741935,
+                    "specificity": 0.9354838709677419,
+                    "threshold": 0.5
+                  }
+                },
+                {
+                  "params": {
+                    "kind": "ensemble",
+                    "members": [
+                      {
+                        "colsample_bytree": 0.8,
+                        "kind": "xgb",
+                        "learning_rate": 0.03,
+                        "max_depth": 5,
+                        "n_estimators": 320,
+                        "subsample": 0.9
+                      },
+                      {
+                        "colsample_bytree": 0.9,
+                        "kind": "lgbm",
+                        "learning_rate": 0.05,
+                        "max_depth": -1,
+                        "n_estimators": 220,
+                        "num_leaves": 31,
+                        "subsample": 0.9
+                      }
+                    ]
+                  },
+                  "ranking_score": 0.760212695717789,
+                  "val_metrics": {
+                    "average_precision": 0.7525702697604225,
+                    "balanced_accuracy": 0.8177419354838709,
+                    "confusion_matrix": {
+                      "fn": 3,
+                      "fp": 2,
+                      "tn": 29,
+                      "tp": 7
+                    },
+                    "f1_anomaly": 0.7368421052631579,
+                    "precision_anomaly": 0.7777777777777778,
+                    "recall_anomaly": 0.7,
+                    "roc_auc": 0.7935483870967742,
+                    "specificity": 0.9354838709677419,
+                    "threshold": 0.56
+                  }
+                }
+              ],
+              "val_metrics": {
+                "average_precision": 0.7620574162679425,
+                "balanced_accuracy": 0.8,
+                "confusion_matrix": {
+                  "fn": 4,
+                  "fp": 0,
+                  "tn": 31,
+                  "tp": 6
+                },
+                "f1_anomaly": 0.75,
+                "precision_anomaly": 1.0,
+                "recall_anomaly": 0.6,
+                "roc_auc": 0.7935483870967742,
+                "specificity": 1.0,
+                "threshold": 0.7200000000000002
+              },
+              "val_rows": 41,
+              "val_runs": 17
+            },
+            "model_id": "feedback_online-boutique_anomaly_20260519T125952Z",
+            "model_name": "feedback_online-boutique_anomaly_20260519T125952Z",
+            "model_type": "anomaly",
+            "model_version": "feedback_online-boutique_anomaly_20260519T125952Z",
+            "notes": "Updated after anomaly training.",
+            "rank_score": 0.638805377347044,
+            "run_manifest_path": "feedback_online-boutique_anomaly_20260519T125952Z/run_manifest.json",
+            "status": "candidate",
+            "trained_at": "2026-05-19T13:00:02.845897+00:00",
+            "updated_at": "2026-05-19T13:00:02.972956+00:00"
+          },
+          {
+            "artifact_dir": "feedback_online-boutique_anomaly_20260519T124350Z",
+            "metrics": {
+              "best_params": {
+                "colsample_bytree": 0.9,
+                "kind": "xgb",
+                "learning_rate": 0.05,
+                "max_depth": 4,
+                "n_estimators": 240,
+                "subsample": 0.9
+              },
+              "best_threshold": 0.26,
+              "data_root": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3",
+              "ensemble_used": false,
+              "feature_columns": [
+                "trace_count",
+                "service_count",
+                "service_role_count",
+                "avg_trace_duration_ms",
+                "p95_trace_duration_ms",
+                "max_trace_duration_ms",
+                "error_trace_ratio",
+                "error_span_ratio",
+                "request_fanout_mean",
+                "critical_path_mean_ms",
+                "latency_cv",
+                "mean_span_count",
+                "call_type_diversity",
+                "entrypoint_trace_ratio",
+                "stateful_trace_ratio"
+              ],
+              "feature_file": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\processed\\anomaly\\window_features_labeled.parquet",
+              "optimize_for": "anomaly",
+              "test_metrics": {
+                "average_precision": 0.6665422460284813,
+                "balanced_accuracy": 0.6625386996904025,
+                "confusion_matrix": {
+                  "fn": 7,
+                  "fp": 10,
+                  "tn": 28,
+                  "tp": 10
+                },
+                "f1_anomaly": 0.5405405405405406,
+                "precision_anomaly": 0.5,
+                "recall_anomaly": 0.5882352941176471,
+                "roc_auc": 0.7693498452012384,
+                "specificity": 0.7368421052631579,
+                "threshold": 0.26
+              },
+              "test_rows": 55,
+              "test_runs": 26,
+              "threshold_bias": 0.0,
+              "train_rows": 112,
+              "train_runs": 61,
+              "tuning_results": [
+                {
+                  "params": {
+                    "colsample_bytree": 0.9,
+                    "kind": "xgb",
+                    "learning_rate": 0.05,
+                    "max_depth": 4,
+                    "n_estimators": 240,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7950739927055717,
+                  "val_metrics": {
+                    "average_precision": 0.7367335998914947,
+                    "balanced_accuracy": 0.8575757575757577,
+                    "confusion_matrix": {
+                      "fn": 2,
+                      "fp": 5,
+                      "tn": 28,
+                      "tp": 13
+                    },
+                    "f1_anomaly": 0.7878787878787878,
+                    "precision_anomaly": 0.7222222222222222,
+                    "recall_anomaly": 0.8666666666666667,
+                    "roc_auc": 0.8525252525252526,
+                    "specificity": 0.8484848484848485,
+                    "threshold": 0.26
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.8,
+                    "kind": "xgb",
+                    "learning_rate": 0.03,
+                    "max_depth": 5,
+                    "n_estimators": 320,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7521178041178042,
+                  "val_metrics": {
+                    "average_precision": 0.7363465963465964,
+                    "balanced_accuracy": 0.806060606060606,
+                    "confusion_matrix": {
+                      "fn": 4,
+                      "fp": 4,
+                      "tn": 29,
+                      "tp": 11
+                    },
+                    "f1_anomaly": 0.7333333333333333,
+                    "precision_anomaly": 0.7333333333333333,
+                    "recall_anomaly": 0.7333333333333333,
+                    "roc_auc": 0.8424242424242424,
+                    "specificity": 0.8787878787878788,
+                    "threshold": 0.30000000000000004
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.9,
+                    "kind": "lgbm",
+                    "learning_rate": 0.05,
+                    "max_depth": -1,
+                    "n_estimators": 220,
+                    "num_leaves": 31,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7213677956030898,
+                  "val_metrics": {
+                    "average_precision": 0.6732382650029709,
+                    "balanced_accuracy": 0.793939393939394,
+                    "confusion_matrix": {
+                      "fn": 3,
+                      "fp": 7,
+                      "tn": 26,
+                      "tp": 12
+                    },
+                    "f1_anomaly": 0.7058823529411765,
+                    "precision_anomaly": 0.631578947368421,
+                    "recall_anomaly": 0.8,
+                    "roc_auc": 0.8262626262626263,
+                    "specificity": 0.7878787878787878,
+                    "threshold": 0.34
+                  }
+                },
+                {
+                  "params": {
+                    "colsample_bytree": 0.8,
+                    "kind": "lgbm",
+                    "learning_rate": 0.03,
+                    "max_depth": -1,
+                    "n_estimators": 320,
+                    "num_leaves": 63,
+                    "subsample": 0.9
+                  },
+                  "ranking_score": 0.7373154526632788,
+                  "val_metrics": {
+                    "average_precision": 0.6752136269527573,
+                    "balanced_accuracy": 0.8090909090909091,
+                    "confusion_matrix": {
+                      "fn": 3,
+                      "fp": 6,
+                      "tn": 27,
+                      "tp": 12
+                    },
+                    "f1_anomaly": 0.7272727272727273,
+                    "precision_anomaly": 0.6666666666666666,
+                    "recall_anomaly": 0.8,
+                    "roc_auc": 0.8323232323232324,
+                    "specificity": 0.8181818181818182,
+                    "threshold": 0.4
+                  }
+                },
+                {
+                  "params": {
+                    "kind": "gbrt",
+                    "learning_rate": 0.05,
+                    "max_depth": 3
+                  },
+                  "ranking_score": 0.7431453176453177,
+                  "val_metrics": {
+                    "average_precision": 0.7665923890923891,
+                    "balanced_accuracy": 0.7878787878787878,
+                    "confusion_matrix": {
+                      "fn": 5,
+                      "fp": 3,
+                      "tn": 30,
+                      "tp": 10
+                    },
+                    "f1_anomaly": 0.7142857142857143,
+                    "precision_anomaly": 0.7692307692307693,
+                    "recall_anomaly": 0.6666666666666666,
+                    "roc_auc": 0.8303030303030303,
+                    "specificity": 0.9090909090909091,
+                    "threshold": 0.30000000000000004
+                  }
+                },
+                {
+                  "params": {
+                    "kind": "ensemble",
+                    "members": [
+                      {
+                        "colsample_bytree": 0.9,
+                        "kind": "xgb",
+                        "learning_rate": 0.05,
+                        "max_depth": 4,
+                        "n_estimators": 240,
+                        "subsample": 0.9
+                      },
+                      {
+                        "colsample_bytree": 0.8,
+                        "kind": "lgbm",
+                        "learning_rate": 0.03,
+                        "max_depth": -1,
+                        "n_estimators": 320,
+                        "num_leaves": 63,
+                        "subsample": 0.9
+                      }
+                    ]
+                  },
+                  "ranking_score": 0.7619326589589749,
+                  "val_metrics": {
+                    "average_precision": 0.7327152428468218,
+                    "balanced_accuracy": 0.8272727272727273,
+                    "confusion_matrix": {
+                      "fn": 2,
+                      "fp": 7,
+                      "tn": 26,
+                      "tp": 13
+                    },
+                    "f1_anomaly": 0.7428571428571429,
+                    "precision_anomaly": 0.65,
+                    "recall_anomaly": 0.8666666666666667,
+                    "roc_auc": 0.8444444444444444,
+                    "specificity": 0.7878787878787878,
+                    "threshold": 0.26
+                  }
+                }
+              ],
+              "val_metrics": {
+                "average_precision": 0.7367335998914947,
+                "balanced_accuracy": 0.8575757575757577,
+                "confusion_matrix": {
+                  "fn": 2,
+                  "fp": 5,
+                  "tn": 28,
+                  "tp": 13
+                },
+                "f1_anomaly": 0.7878787878787878,
+                "precision_anomaly": 0.7222222222222222,
+                "recall_anomaly": 0.8666666666666667,
+                "roc_auc": 0.8525252525252526,
+                "specificity": 0.8484848484848485,
+                "threshold": 0.26
+              },
+              "val_rows": 48,
+              "val_runs": 23
+            },
+            "model_id": "feedback_online-boutique_anomaly_20260519T124350Z",
+            "model_name": "feedback_online-boutique_anomaly_20260519T124350Z",
+            "model_type": "anomaly",
+            "model_version": "feedback_online-boutique_anomaly_20260519T124350Z",
+            "notes": "Updated after anomaly training.",
+            "rank_score": 0.619121351891664,
+            "run_manifest_path": "feedback_online-boutique_anomaly_20260519T124350Z/run_manifest.json",
+            "status": "candidate",
+            "trained_at": "2026-05-19T12:44:02.732663+00:00",
+            "updated_at": "2026-05-19T12:44:02.876166+00:00"
+          }
+        ],
         "previous": [],
         "production": {
           "artifact_dir": "anomaly_xgb_lgbm",
@@ -71,8 +599,72 @@
           "updated_at": "2026-05-17T06:16:43.027926+00:00"
         }
       }
+    },
+    "sock_shop": {
+      "anomaly": {
+        "candidates": [],
+        "previous": [],
+        "production": {
+          "artifact_dir": "anomaly_xgb_lgbm",
+          "metrics": {
+            "best_params": {
+              "colsample_bytree": 0.8,
+              "kind": "xgb",
+              "learning_rate": 0.03,
+              "max_depth": 5,
+              "n_estimators": 320,
+              "subsample": 0.9
+            },
+            "best_threshold": 0.7200000000000002,
+            "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
+            "ensemble_used": false,
+            "feature_file": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\processed\\anomaly\\window_features_labeled.parquet",
+            "test_metrics": {
+              "average_precision": 0.6772970887554222,
+              "balanced_accuracy": 0.6931818181818182,
+              "f1_anomaly": 0.5555555555555556,
+              "precision_anomaly": 0.8333333333333334,
+              "recall_anomaly": 0.4166666666666667,
+              "roc_auc": 0.8005050505050505,
+              "specificity": 0.9696969696969697,
+              "threshold": 0.7200000000000002
+            },
+            "test_rows": 45,
+            "test_runs": 19,
+            "train_rows": 96,
+            "train_runs": 48,
+            "val_metrics": {
+              "average_precision": 0.7620574162679425,
+              "balanced_accuracy": 0.8,
+              "f1_anomaly": 0.75,
+              "precision_anomaly": 1.0,
+              "recall_anomaly": 0.6,
+              "roc_auc": 0.7935483870967742,
+              "specificity": 1.0,
+              "threshold": 0.7200000000000002
+            },
+            "val_rows": 41,
+            "val_runs": 17
+          },
+          "mlflow_artifact_uri": "mlflow-artifacts:/3/9030b1ac6a1247598e862ceb4291701b/artifacts",
+          "mlflow_experiment_id": "3",
+          "mlflow_experiment_name": "aiops-anomaly-training",
+          "mlflow_run_id": "9030b1ac6a1247598e862ceb4291701b",
+          "mlflow_tracking_uri": "http://127.0.0.1:5000",
+          "model_id": "anomaly_xgb_lgbm",
+          "model_name": "anomaly_xgb_lgbm",
+          "model_type": "anomaly",
+          "model_version": "anomaly_xgb_lgbm",
+          "notes": "Bootstrap baseline for Sock Shop using the current shared anomaly production artifact until dedicated Sock Shop training is registered.",
+          "rank_score": 0.638805377347044,
+          "run_manifest_path": "anomaly_xgb_lgbm/run_manifest.json",
+          "status": "production",
+          "trained_at": "2026-05-17T06:16:38.830449+00:00",
+          "updated_at": "2026-05-18T15:09:09.8596666+00:00"
+        }
+      }
     }
   },
   "task": "anomaly",
-  "updated_at": "2026-05-17T06:16:43.035404+00:00"
+  "updated_at": "2026-05-19T13:00:02.995603+00:00"
 }

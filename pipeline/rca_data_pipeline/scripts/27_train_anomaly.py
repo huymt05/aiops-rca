@@ -47,7 +47,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from pipeline.rca_data_pipeline.run_manifest import build_run_manifest, collect_package_versions, write_run_manifest
-from aiops_framework.inference.common.artifact_registry import set_stage
+from aiops_framework.inference.common.artifact_registry import DEFAULT_SYSTEM_ID, set_stage
 
 
 DEFAULT_DATA_ROOT = Path(r"D:\HOCTAP\2025-2026\HK2\DACN\microservices-demo\data_anomaly_balanced_v3")
@@ -58,7 +58,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--feature-file", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--models-root", type=Path, default=None)
     parser.add_argument("--random-state", type=int, default=42)
+    parser.add_argument("--system-id", default=DEFAULT_SYSTEM_ID, help="Registry system id for candidate registration.")
     parser.add_argument("--model-kind", choices=["auto", "ensemble", "xgb", "lgbm", "gbrt"], default="auto")
     parser.add_argument("--optimize-for", choices=["anomaly", "normal"], default="anomaly")
     parser.add_argument(
@@ -301,6 +303,7 @@ def main() -> None:
     data_root = args.data_root
     feature_file = args.feature_file or (data_root / "processed" / "anomaly" / "window_features_labeled.parquet")
     output_dir = args.output_dir or (data_root / "models" / "anomaly_xgb_lgbm")
+    models_root = args.models_root or output_dir.parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
     train_runs = set(read_run_ids(data_root / "splits" / "train_runs.txt"))
@@ -626,18 +629,19 @@ def main() -> None:
             write_run_manifest(output_dir, manifest)
 
     set_stage(
-        data_root / "models",
+        models_root,
         "anomaly",
         "candidate",
         output_dir.name,
         notes="Updated after anomaly training.",
+        system_id=args.system_id,
         metadata={f"mlflow_{key}": value for key, value in mlflow_metadata.items()} if mlflow_metadata else None,
     )
 
     print("Best anomaly model selected.")
     print(json.dumps({"val_metrics": best_val, "test_metrics": test_metrics, "best_params": best_params}, indent=2, ensure_ascii=False))
     print(f"Saved metrics to {output_dir / 'metrics.json'}")
-    print(f"Updated candidate registry at {data_root / 'models' / 'model_registry.json'}")
+    print(f"Updated candidate registry at {models_root / 'model_registry.json'}")
 
 
 if __name__ == "__main__":

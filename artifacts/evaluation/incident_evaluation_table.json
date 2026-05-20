@@ -1,0 +1,46 @@
+[
+  {
+    "annotation_payload": {},
+    "anomaly_correct": true,
+    "anomaly_model": "smoke",
+    "anomaly_score": 0.91,
+    "created_at": "2026-04-29T04:28:07.220063+00:00",
+    "event_id": 1,
+    "event_payload": {
+      "anomaly": {
+        "anomaly_score": 0.91,
+        "is_anomaly": true,
+        "model_name": "smoke"
+      },
+      "live_context": {
+        "source_service": "all",
+        "system_id": "online-boutique"
+      },
+      "rca": {
+        "top1": {
+          "score": 0.8,
+          "service_name": "frontend"
+        }
+      },
+      "recommendation": {
+        "primary_action": "Restart Pod"
+      }
+    },
+    "expected_is_anomaly": true,
+    "expected_root_cause": "",
+    "feedback": "accepted_incident",
+    "feedback_actor": "tester",
+    "feedback_notes": "",
+    "feedback_payload": {},
+    "incident_label": "",
+    "predicted_is_anomaly": true,
+    "predicted_root_cause": "frontend",
+    "rca_top1_score": 0.8,
+    "recommendation_action": "Restart Pod",
+    "root_cause_top1_correct": null,
+    "root_cause_top3_hit": null,
+    "source_service": "all",
+    "system_id": "online-boutique",
+    "top3_services": []
+  }
+]

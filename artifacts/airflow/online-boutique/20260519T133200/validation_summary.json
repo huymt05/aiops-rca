@@ -1,0 +1,7 @@
+{
+  "anomaly_data_root": "/opt/airflow/handoff/datasets/anomaly_train_dataset",
+  "artifacts_dir": "/opt/airflow/repo/artifacts/airflow/online-boutique/20260519T133200",
+  "rca_data_root": "/opt/airflow/handoff/datasets/rca_train_dataset",
+  "system_id": "online-boutique",
+  "validated_at": "2026-05-19T13:32:00+00:00"
+}

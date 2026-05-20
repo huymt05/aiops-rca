@@ -1,0 +1,44 @@
+executor: LocalExecutor
+
+images:
+  airflow:
+    repository: aiops-airflow-k8s
+    tag: latest
+    pullPolicy: Never
+
+airflowVersion: "3.2.1"
+
+dags:
+  persistence:
+    enabled: false
+  gitSync:
+    enabled: false
+
+env:
+  - name: PYTHONPATH
+    value: /opt/airflow/repo:/opt/airflow/repo/src:/opt/airflow/repo/pipeline:/opt/airflow/repo/pipeline/rca_data_pipeline
+  - name: AIRFLOW__CORE__DAGS_FOLDER
+    value: /opt/airflow/repo/pipeline/airflow/dags
+  - name: MLFLOW_TRACKING_URI
+    value: http://mlflow.mlops.svc.cluster.local:5000
+  - name: AIOPS_PYTHON
+    value: /usr/local/bin/python
+
+webserver:
+  service:
+    type: ClusterIP
+
+postgresql:
+  enabled: true
+
+redis:
+  enabled: false
+
+workers:
+  replicas: 1
+
+scheduler:
+  replicas: 1
+
+triggerer:
+  replicas: 1

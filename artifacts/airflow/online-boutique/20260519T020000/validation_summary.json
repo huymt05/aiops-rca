@@ -1,0 +1,7 @@
+{
+  "anomaly_data_root": "/opt/airflow/repo/data_anomaly_balanced_v3",
+  "artifacts_dir": "/opt/airflow/repo/artifacts/airflow/online-boutique/20260519T020000",
+  "rca_data_root": "/opt/airflow/repo/data_rca_balanced_v3",
+  "system_id": "online-boutique",
+  "validated_at": "2026-05-19T02:00:00+00:00"
+}

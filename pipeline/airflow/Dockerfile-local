@@ -1,0 +1,13 @@
+FROM apache/airflow:3.2.1-python3.11
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+COPY pipeline/airflow/requirements-airflow-local.txt /opt/airflow/requirements-airflow-local.txt
+RUN pip install --no-cache-dir -r /opt/airflow/requirements-airflow-local.txt
+
+USER root
+RUN ln -sf /home/airflow/.local/bin/airflow /usr/local/bin/airflow

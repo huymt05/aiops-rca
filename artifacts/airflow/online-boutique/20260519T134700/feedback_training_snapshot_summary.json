@@ -1,0 +1,13 @@
+{
+  "by_feedback": {
+    "accepted_incident": 1
+  },
+  "by_system": {
+    "online-boutique": {
+      "accepted_incident": 1
+    }
+  },
+  "output": "/opt/airflow/repo/artifacts/airflow/online-boutique/20260519T134700/feedback_training_snapshot.jsonl",
+  "records": 1,
+  "source": "/opt/airflow/repo/.tmp_aiops_dashboard/aiops_dashboard_store.json"
+}

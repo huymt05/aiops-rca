@@ -29,7 +29,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from pipeline.rca_data_pipeline.run_manifest import build_run_manifest, collect_package_versions, write_run_manifest
-from aiops_framework.inference.common.artifact_registry import set_stage
+from aiops_framework.inference.common.artifact_registry import DEFAULT_SYSTEM_ID, set_stage
 
 
 DEFAULT_DATA_ROOT = Path(r"D:\HOCTAP\2025-2026\HK2\DACN\microservices-demo\data_rca_balanced_v3")
@@ -39,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train a lightweight graph-attention RCA model on exported graph tensors.")
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--epochs", type=int, default=140)
+    parser.add_argument("--system-id", default=DEFAULT_SYSTEM_ID, help="Registry system id for candidate registration.")
     parser.add_argument("--hidden-dim", type=int, default=48)
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -46,6 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--patience", type=int, default=24)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--models-root", type=Path, default=None)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="cpu")
     parser.add_argument("--mlflow", action="store_true", help="Enable MLflow logging for RCA training.")
     parser.add_argument("--mlflow-experiment", default="aiops-microservices-demo")
@@ -344,6 +346,7 @@ def main() -> None:
 
     data_root = args.data_root
     output_dir = args.output_dir or (data_root / "models" / "rca_gat_like")
+    models_root = args.models_root or output_dir.parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
     train_runs = set(read_run_ids(data_root / "splits" / "train_runs.txt"))
@@ -538,11 +541,12 @@ def main() -> None:
             write_run_manifest(output_dir, manifest)
 
     set_stage(
-        data_root / "models",
+        models_root,
         "rca",
         "candidate",
         output_dir.name,
         notes="Updated after RCA training.",
+        system_id=args.system_id,
         metadata={f"mlflow_{key}": value for key, value in mlflow_metadata.items()} if mlflow_metadata else None,
     )
 
@@ -551,7 +555,7 @@ def main() -> None:
     print("Test metrics:")
     print(json.dumps(test_metrics, indent=2, ensure_ascii=False))
     print(f"Saved artifacts to {output_dir}")
-    print(f"Updated candidate registry at {data_root / 'models' / 'model_registry.json'}")
+    print(f"Updated candidate registry at {models_root / 'model_registry.json'}")
 
 
 if __name__ == "__main__":

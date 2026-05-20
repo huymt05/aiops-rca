@@ -1,0 +1,15 @@
+{
+  "annotated_for_anomaly": 1,
+  "annotated_for_rca_top1": 0,
+  "annotated_for_rca_top3": 0,
+  "anomaly_accuracy": 1.0,
+  "feedback": {
+    "accepted_incident": 1
+  },
+  "rca_top1_accuracy": null,
+  "rca_top3_hit_rate": null,
+  "records": 1,
+  "systems": {
+    "online-boutique": 1
+  }
+}

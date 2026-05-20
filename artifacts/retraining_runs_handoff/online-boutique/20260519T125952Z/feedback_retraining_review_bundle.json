@@ -1,0 +1,1425 @@
+{
+  "anomaly_training": {
+    "artifact_dir": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\models\\feedback_online-boutique_anomaly_20260519T125952Z",
+    "run_manifest_path": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\models\\feedback_online-boutique_anomaly_20260519T125952Z\\run_manifest.json",
+    "stdout_tail": [
+      "    \"learning_rate\": 0.03,",
+      "    \"max_depth\": 5,",
+      "    \"subsample\": 0.9,",
+      "    \"colsample_bytree\": 0.8",
+      "  }",
+      "}",
+      "Saved metrics to D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\models\\feedback_online-boutique_anomaly_20260519T125952Z\\metrics.json",
+      "Updated candidate registry at D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\models\\model_registry.json"
+    ]
+  },
+  "feedback_snapshot": {
+    "path": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\artifacts\\retraining_runs_handoff\\online-boutique\\20260519T125952Z\\feedback_training_snapshot.jsonl",
+    "stdout": [
+      "Exported 1 feedback snapshot rows to D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\artifacts\\retraining_runs_handoff\\online-boutique\\20260519T125952Z\\feedback_training_snapshot.jsonl",
+      "Wrote summary to D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\artifacts\\retraining_runs_handoff\\online-boutique\\20260519T125952Z\\feedback_training_snapshot_summary.json"
+    ],
+    "summary_path": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\artifacts\\retraining_runs_handoff\\online-boutique\\20260519T125952Z\\feedback_training_snapshot_summary.json"
+  },
+  "generated_at": "2026-05-19T13:00:28.581629+00:00",
+  "next_actions": {
+    "promote_anomaly": "C:\\Users\\HUY\\AppData\\Local\\Programs\\Python\\Python311\\python.exe D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\pipeline\\rca_data_pipeline\\scripts\\31_promote_model.py --task anomaly --models-root D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\models --system-id online-boutique",
+    "promote_rca": "C:\\Users\\HUY\\AppData\\Local\\Programs\\Python\\Python311\\python.exe D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\pipeline\\rca_data_pipeline\\scripts\\31_promote_model.py --task rca --models-root D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models --system-id online-boutique"
+  },
+  "rca_training": {
+    "artifact_dir": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\feedback_online-boutique_rca_20260519T125952Z",
+    "run_manifest_path": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\feedback_online-boutique_rca_20260519T125952Z\\run_manifest.json",
+    "stdout_tail": [
+      "      \"count\": 4,",
+      "      \"top1_acc\": 0.25,",
+      "      \"top3_acc\": 1.0",
+      "    }",
+      "  }",
+      "}",
+      "Saved artifacts to D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\feedback_online-boutique_rca_20260519T125952Z",
+      "Updated candidate registry at D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\model_registry.json"
+    ]
+  },
+  "registry_snapshot": {
+    "anomaly": {
+      "candidates": [
+        {
+          "artifact_dir": "feedback_online-boutique_anomaly_20260519T125952Z",
+          "metrics": {
+            "best_params": {
+              "colsample_bytree": 0.8,
+              "kind": "xgb",
+              "learning_rate": 0.03,
+              "max_depth": 5,
+              "n_estimators": 320,
+              "subsample": 0.9
+            },
+            "best_threshold": 0.7200000000000002,
+            "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
+            "ensemble_used": false,
+            "feature_columns": [
+              "trace_count",
+              "service_count",
+              "service_role_count",
+              "avg_trace_duration_ms",
+              "p95_trace_duration_ms",
+              "max_trace_duration_ms",
+              "error_trace_ratio",
+              "error_span_ratio",
+              "request_fanout_mean",
+              "critical_path_mean_ms",
+              "latency_cv",
+              "mean_span_count",
+              "call_type_diversity",
+              "entrypoint_trace_ratio",
+              "stateful_trace_ratio"
+            ],
+            "feature_file": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\processed\\anomaly\\window_features_labeled.parquet",
+            "optimize_for": "anomaly",
+            "test_metrics": {
+              "average_precision": 0.6772970887554222,
+              "balanced_accuracy": 0.6931818181818182,
+              "confusion_matrix": {
+                "fn": 7,
+                "fp": 1,
+                "tn": 32,
+                "tp": 5
+              },
+              "f1_anomaly": 0.5555555555555556,
+              "precision_anomaly": 0.8333333333333334,
+              "recall_anomaly": 0.4166666666666667,
+              "roc_auc": 0.8005050505050505,
+              "specificity": 0.9696969696969697,
+              "threshold": 0.7200000000000002
+            },
+            "test_rows": 45,
+            "test_runs": 19,
+            "threshold_bias": 0.0,
+            "train_rows": 96,
+            "train_runs": 48,
+            "tuning_results": [
+              {
+                "params": {
+                  "colsample_bytree": 0.9,
+                  "kind": "xgb",
+                  "learning_rate": 0.05,
+                  "max_depth": 4,
+                  "n_estimators": 240,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7581333306384239,
+                "val_metrics": {
+                  "average_precision": 0.7421734443635971,
+                  "balanced_accuracy": 0.8177419354838709,
+                  "confusion_matrix": {
+                    "fn": 3,
+                    "fp": 2,
+                    "tn": 29,
+                    "tp": 7
+                  },
+                  "f1_anomaly": 0.7368421052631579,
+                  "precision_anomaly": 0.7777777777777778,
+                  "recall_anomaly": 0.7,
+                  "roc_auc": 0.7870967741935483,
+                  "specificity": 0.9354838709677419,
+                  "threshold": 0.42000000000000004
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.8,
+                  "kind": "xgb",
+                  "learning_rate": 0.03,
+                  "max_depth": 5,
+                  "n_estimators": 320,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7649114832535886,
+                "val_metrics": {
+                  "average_precision": 0.7620574162679425,
+                  "balanced_accuracy": 0.8,
+                  "confusion_matrix": {
+                    "fn": 4,
+                    "fp": 0,
+                    "tn": 31,
+                    "tp": 6
+                  },
+                  "f1_anomaly": 0.75,
+                  "precision_anomaly": 1.0,
+                  "recall_anomaly": 0.6,
+                  "roc_auc": 0.7935483870967742,
+                  "specificity": 1.0,
+                  "threshold": 0.7200000000000002
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.9,
+                  "kind": "lgbm",
+                  "learning_rate": 0.05,
+                  "max_depth": -1,
+                  "n_estimators": 220,
+                  "num_leaves": 31,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.6874556445668251,
+                "val_metrics": {
+                  "average_precision": 0.6442674701459531,
+                  "balanced_accuracy": 0.7677419354838709,
+                  "confusion_matrix": {
+                    "fn": 4,
+                    "fp": 2,
+                    "tn": 29,
+                    "tp": 6
+                  },
+                  "f1_anomaly": 0.6666666666666666,
+                  "precision_anomaly": 0.75,
+                  "recall_anomaly": 0.6,
+                  "roc_auc": 0.7483870967741935,
+                  "specificity": 0.9354838709677419,
+                  "threshold": 0.6600000000000001
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.8,
+                  "kind": "lgbm",
+                  "learning_rate": 0.03,
+                  "max_depth": -1,
+                  "n_estimators": 320,
+                  "num_leaves": 63,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.6418218210756161,
+                "val_metrics": {
+                  "average_precision": 0.6359310886516768,
+                  "balanced_accuracy": 0.7548387096774194,
+                  "confusion_matrix": {
+                    "fn": 2,
+                    "fp": 9,
+                    "tn": 22,
+                    "tp": 8
+                  },
+                  "f1_anomaly": 0.5925925925925926,
+                  "precision_anomaly": 0.47058823529411764,
+                  "recall_anomaly": 0.8,
+                  "roc_auc": 0.7451612903225806,
+                  "specificity": 0.7096774193548387,
+                  "threshold": 0.30000000000000004
+                }
+              },
+              {
+                "params": {
+                  "kind": "gbrt",
+                  "learning_rate": 0.05,
+                  "max_depth": 3
+                },
+                "ranking_score": 0.761173193240256,
+                "val_metrics": {
+                  "average_precision": 0.7573727573727573,
+                  "balanced_accuracy": 0.8177419354838709,
+                  "confusion_matrix": {
+                    "fn": 3,
+                    "fp": 2,
+                    "tn": 29,
+                    "tp": 7
+                  },
+                  "f1_anomaly": 0.7368421052631579,
+                  "precision_anomaly": 0.7777777777777778,
+                  "recall_anomaly": 0.7,
+                  "roc_auc": 0.7483870967741935,
+                  "specificity": 0.9354838709677419,
+                  "threshold": 0.5
+                }
+              },
+              {
+                "params": {
+                  "kind": "ensemble",
+                  "members": [
+                    {
+                      "colsample_bytree": 0.8,
+                      "kind": "xgb",
+                      "learning_rate": 0.03,
+                      "max_depth": 5,
+                      "n_estimators": 320,
+                      "subsample": 0.9
+                    },
+                    {
+                      "colsample_bytree": 0.9,
+                      "kind": "lgbm",
+                      "learning_rate": 0.05,
+                      "max_depth": -1,
+                      "n_estimators": 220,
+                      "num_leaves": 31,
+                      "subsample": 0.9
+                    }
+                  ]
+                },
+                "ranking_score": 0.760212695717789,
+                "val_metrics": {
+                  "average_precision": 0.7525702697604225,
+                  "balanced_accuracy": 0.8177419354838709,
+                  "confusion_matrix": {
+                    "fn": 3,
+                    "fp": 2,
+                    "tn": 29,
+                    "tp": 7
+                  },
+                  "f1_anomaly": 0.7368421052631579,
+                  "precision_anomaly": 0.7777777777777778,
+                  "recall_anomaly": 0.7,
+                  "roc_auc": 0.7935483870967742,
+                  "specificity": 0.9354838709677419,
+                  "threshold": 0.56
+                }
+              }
+            ],
+            "val_metrics": {
+              "average_precision": 0.7620574162679425,
+              "balanced_accuracy": 0.8,
+              "confusion_matrix": {
+                "fn": 4,
+                "fp": 0,
+                "tn": 31,
+                "tp": 6
+              },
+              "f1_anomaly": 0.75,
+              "precision_anomaly": 1.0,
+              "recall_anomaly": 0.6,
+              "roc_auc": 0.7935483870967742,
+              "specificity": 1.0,
+              "threshold": 0.7200000000000002
+            },
+            "val_rows": 41,
+            "val_runs": 17
+          },
+          "model_id": "feedback_online-boutique_anomaly_20260519T125952Z",
+          "model_name": "feedback_online-boutique_anomaly_20260519T125952Z",
+          "model_type": "anomaly",
+          "model_version": "feedback_online-boutique_anomaly_20260519T125952Z",
+          "notes": "Updated after anomaly training.",
+          "rank_score": 0.638805377347044,
+          "run_manifest_path": "feedback_online-boutique_anomaly_20260519T125952Z/run_manifest.json",
+          "status": "candidate",
+          "trained_at": "2026-05-19T13:00:02.845897+00:00",
+          "updated_at": "2026-05-19T13:00:02.972956+00:00"
+        },
+        {
+          "artifact_dir": "feedback_online-boutique_anomaly_20260519T124350Z",
+          "metrics": {
+            "best_params": {
+              "colsample_bytree": 0.9,
+              "kind": "xgb",
+              "learning_rate": 0.05,
+              "max_depth": 4,
+              "n_estimators": 240,
+              "subsample": 0.9
+            },
+            "best_threshold": 0.26,
+            "data_root": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3",
+            "ensemble_used": false,
+            "feature_columns": [
+              "trace_count",
+              "service_count",
+              "service_role_count",
+              "avg_trace_duration_ms",
+              "p95_trace_duration_ms",
+              "max_trace_duration_ms",
+              "error_trace_ratio",
+              "error_span_ratio",
+              "request_fanout_mean",
+              "critical_path_mean_ms",
+              "latency_cv",
+              "mean_span_count",
+              "call_type_diversity",
+              "entrypoint_trace_ratio",
+              "stateful_trace_ratio"
+            ],
+            "feature_file": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_anomaly_balanced_v3\\processed\\anomaly\\window_features_labeled.parquet",
+            "optimize_for": "anomaly",
+            "test_metrics": {
+              "average_precision": 0.6665422460284813,
+              "balanced_accuracy": 0.6625386996904025,
+              "confusion_matrix": {
+                "fn": 7,
+                "fp": 10,
+                "tn": 28,
+                "tp": 10
+              },
+              "f1_anomaly": 0.5405405405405406,
+              "precision_anomaly": 0.5,
+              "recall_anomaly": 0.5882352941176471,
+              "roc_auc": 0.7693498452012384,
+              "specificity": 0.7368421052631579,
+              "threshold": 0.26
+            },
+            "test_rows": 55,
+            "test_runs": 26,
+            "threshold_bias": 0.0,
+            "train_rows": 112,
+            "train_runs": 61,
+            "tuning_results": [
+              {
+                "params": {
+                  "colsample_bytree": 0.9,
+                  "kind": "xgb",
+                  "learning_rate": 0.05,
+                  "max_depth": 4,
+                  "n_estimators": 240,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7950739927055717,
+                "val_metrics": {
+                  "average_precision": 0.7367335998914947,
+                  "balanced_accuracy": 0.8575757575757577,
+                  "confusion_matrix": {
+                    "fn": 2,
+                    "fp": 5,
+                    "tn": 28,
+                    "tp": 13
+                  },
+                  "f1_anomaly": 0.7878787878787878,
+                  "precision_anomaly": 0.7222222222222222,
+                  "recall_anomaly": 0.8666666666666667,
+                  "roc_auc": 0.8525252525252526,
+                  "specificity": 0.8484848484848485,
+                  "threshold": 0.26
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.8,
+                  "kind": "xgb",
+                  "learning_rate": 0.03,
+                  "max_depth": 5,
+                  "n_estimators": 320,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7521178041178042,
+                "val_metrics": {
+                  "average_precision": 0.7363465963465964,
+                  "balanced_accuracy": 0.806060606060606,
+                  "confusion_matrix": {
+                    "fn": 4,
+                    "fp": 4,
+                    "tn": 29,
+                    "tp": 11
+                  },
+                  "f1_anomaly": 0.7333333333333333,
+                  "precision_anomaly": 0.7333333333333333,
+                  "recall_anomaly": 0.7333333333333333,
+                  "roc_auc": 0.8424242424242424,
+                  "specificity": 0.8787878787878788,
+                  "threshold": 0.30000000000000004
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.9,
+                  "kind": "lgbm",
+                  "learning_rate": 0.05,
+                  "max_depth": -1,
+                  "n_estimators": 220,
+                  "num_leaves": 31,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7213677956030898,
+                "val_metrics": {
+                  "average_precision": 0.6732382650029709,
+                  "balanced_accuracy": 0.793939393939394,
+                  "confusion_matrix": {
+                    "fn": 3,
+                    "fp": 7,
+                    "tn": 26,
+                    "tp": 12
+                  },
+                  "f1_anomaly": 0.7058823529411765,
+                  "precision_anomaly": 0.631578947368421,
+                  "recall_anomaly": 0.8,
+                  "roc_auc": 0.8262626262626263,
+                  "specificity": 0.7878787878787878,
+                  "threshold": 0.34
+                }
+              },
+              {
+                "params": {
+                  "colsample_bytree": 0.8,
+                  "kind": "lgbm",
+                  "learning_rate": 0.03,
+                  "max_depth": -1,
+                  "n_estimators": 320,
+                  "num_leaves": 63,
+                  "subsample": 0.9
+                },
+                "ranking_score": 0.7373154526632788,
+                "val_metrics": {
+                  "average_precision": 0.6752136269527573,
+                  "balanced_accuracy": 0.8090909090909091,
+                  "confusion_matrix": {
+                    "fn": 3,
+                    "fp": 6,
+                    "tn": 27,
+                    "tp": 12
+                  },
+                  "f1_anomaly": 0.7272727272727273,
+                  "precision_anomaly": 0.6666666666666666,
+                  "recall_anomaly": 0.8,
+                  "roc_auc": 0.8323232323232324,
+                  "specificity": 0.8181818181818182,
+                  "threshold": 0.4
+                }
+              },
+              {
+                "params": {
+                  "kind": "gbrt",
+                  "learning_rate": 0.05,
+                  "max_depth": 3
+                },
+                "ranking_score": 0.7431453176453177,
+                "val_metrics": {
+                  "average_precision": 0.7665923890923891,
+                  "balanced_accuracy": 0.7878787878787878,
+                  "confusion_matrix": {
+                    "fn": 5,
+                    "fp": 3,
+                    "tn": 30,
+                    "tp": 10
+                  },
+                  "f1_anomaly": 0.7142857142857143,
+                  "precision_anomaly": 0.7692307692307693,
+                  "recall_anomaly": 0.6666666666666666,
+                  "roc_auc": 0.8303030303030303,
+                  "specificity": 0.9090909090909091,
+                  "threshold": 0.30000000000000004
+                }
+              },
+              {
+                "params": {
+                  "kind": "ensemble",
+                  "members": [
+                    {
+                      "colsample_bytree": 0.9,
+                      "kind": "xgb",
+                      "learning_rate": 0.05,
+                      "max_depth": 4,
+                      "n_estimators": 240,
+                      "subsample": 0.9
+                    },
+                    {
+                      "colsample_bytree": 0.8,
+                      "kind": "lgbm",
+                      "learning_rate": 0.03,
+                      "max_depth": -1,
+                      "n_estimators": 320,
+                      "num_leaves": 63,
+                      "subsample": 0.9
+                    }
+                  ]
+                },
+                "ranking_score": 0.7619326589589749,
+                "val_metrics": {
+                  "average_precision": 0.7327152428468218,
+                  "balanced_accuracy": 0.8272727272727273,
+                  "confusion_matrix": {
+                    "fn": 2,
+                    "fp": 7,
+                    "tn": 26,
+                    "tp": 13
+                  },
+                  "f1_anomaly": 0.7428571428571429,
+                  "precision_anomaly": 0.65,
+                  "recall_anomaly": 0.8666666666666667,
+                  "roc_auc": 0.8444444444444444,
+                  "specificity": 0.7878787878787878,
+                  "threshold": 0.26
+                }
+              }
+            ],
+            "val_metrics": {
+              "average_precision": 0.7367335998914947,
+              "balanced_accuracy": 0.8575757575757577,
+              "confusion_matrix": {
+                "fn": 2,
+                "fp": 5,
+                "tn": 28,
+                "tp": 13
+              },
+              "f1_anomaly": 0.7878787878787878,
+              "precision_anomaly": 0.7222222222222222,
+              "recall_anomaly": 0.8666666666666667,
+              "roc_auc": 0.8525252525252526,
+              "specificity": 0.8484848484848485,
+              "threshold": 0.26
+            },
+            "val_rows": 48,
+            "val_runs": 23
+          },
+          "model_id": "feedback_online-boutique_anomaly_20260519T124350Z",
+          "model_name": "feedback_online-boutique_anomaly_20260519T124350Z",
+          "model_type": "anomaly",
+          "model_version": "feedback_online-boutique_anomaly_20260519T124350Z",
+          "notes": "Updated after anomaly training.",
+          "rank_score": 0.619121351891664,
+          "run_manifest_path": "feedback_online-boutique_anomaly_20260519T124350Z/run_manifest.json",
+          "status": "candidate",
+          "trained_at": "2026-05-19T12:44:02.732663+00:00",
+          "updated_at": "2026-05-19T12:44:02.876166+00:00"
+        }
+      ],
+      "model_type": "anomaly",
+      "previous": [],
+      "production": {
+        "artifact_dir": "anomaly_xgb_lgbm",
+        "metrics": {
+          "best_params": {
+            "colsample_bytree": 0.8,
+            "kind": "xgb",
+            "learning_rate": 0.03,
+            "max_depth": 5,
+            "n_estimators": 320,
+            "subsample": 0.9
+          },
+          "best_threshold": 0.7200000000000002,
+          "data_root": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset",
+          "ensemble_used": false,
+          "feature_file": "E:\\mlops_train_handoff\\datasets\\anomaly_train_dataset\\processed\\anomaly\\window_features_labeled.parquet",
+          "test_metrics": {
+            "average_precision": 0.6772970887554222,
+            "balanced_accuracy": 0.6931818181818182,
+            "f1_anomaly": 0.5555555555555556,
+            "precision_anomaly": 0.8333333333333334,
+            "recall_anomaly": 0.4166666666666667,
+            "roc_auc": 0.8005050505050505,
+            "specificity": 0.9696969696969697,
+            "threshold": 0.7200000000000002
+          },
+          "test_rows": 45,
+          "test_runs": 19,
+          "train_rows": 96,
+          "train_runs": 48,
+          "val_metrics": {
+            "average_precision": 0.7620574162679425,
+            "balanced_accuracy": 0.8,
+            "f1_anomaly": 0.75,
+            "precision_anomaly": 1.0,
+            "recall_anomaly": 0.6,
+            "roc_auc": 0.7935483870967742,
+            "specificity": 1.0,
+            "threshold": 0.7200000000000002
+          },
+          "val_rows": 41,
+          "val_runs": 17
+        },
+        "mlflow_artifact_uri": "mlflow-artifacts:/3/9030b1ac6a1247598e862ceb4291701b/artifacts",
+        "mlflow_experiment_id": "3",
+        "mlflow_experiment_name": "aiops-anomaly-training",
+        "mlflow_run_id": "9030b1ac6a1247598e862ceb4291701b",
+        "mlflow_tracking_uri": "http://127.0.0.1:5000",
+        "model_id": "anomaly_xgb_lgbm",
+        "model_name": "anomaly_xgb_lgbm",
+        "model_type": "anomaly",
+        "model_version": "anomaly_xgb_lgbm",
+        "notes": "Updated after anomaly training.",
+        "rank_score": 0.638805377347044,
+        "run_manifest_path": "anomaly_xgb_lgbm/run_manifest.json",
+        "status": "production",
+        "trained_at": "2026-05-17T06:16:38.830449+00:00",
+        "updated_at": "2026-05-17T06:16:43.027926+00:00"
+      },
+      "system_id": "online-boutique"
+    },
+    "rca": {
+      "candidates": [
+        {
+          "artifact_dir": "re2_ob_gat_baseline",
+          "dataset": "RCAEval RE2-OB",
+          "display_name": "GAT baseline",
+          "legacy_model_type": "simple_graph_attention",
+          "metrics": {
+            "best_epoch": 13,
+            "best_val_metrics": {
+              "mrr": 0.8525641025641026,
+              "num_graphs": 13,
+              "top1_acc": 0.7692307692307693,
+              "top3_acc": 0.9230769230769231
+            },
+            "test_metrics": {
+              "mrr": 0.9666666666666667,
+              "num_graphs": 15,
+              "top1_acc": 0.9333333333333333,
+              "top3_acc": 1.0
+            },
+            "top_k_default": 3
+          },
+          "model_id": "re2_ob_gat_baseline",
+          "model_name": "re2_ob_gat_baseline",
+          "model_type": "rca",
+          "model_version": "re2_ob_gat_baseline",
+          "notes": "Imported from legacy RCA artifact registry.",
+          "rank_score": 0.9766666666666667,
+          "run_manifest_path": "",
+          "source_registry": "legacy_rca_model_registry",
+          "status": "candidate",
+          "top_k_default": 3,
+          "trained_at": "",
+          "updated_at": "2026-05-19T12:44:21.514962+00:00"
+        },
+        {
+          "artifact_dir": "re2_ob_rf_ml_ranker",
+          "dataset": "RCAEval RE2-OB",
+          "display_name": "RF ML Ranker",
+          "legacy_model_type": "random_forest_service_ranker",
+          "metrics": {
+            "dataset": "RCAEval RE2-OB",
+            "evaluation_scope": "leave_service",
+            "mrr": 0.8956,
+            "num_features": 480,
+            "top1_acc": 0.8222,
+            "top3_acc": 0.9667,
+            "train_cases": 90,
+            "train_rows": 990
+          },
+          "model_id": "re2_ob_rf_ml_ranker",
+          "model_name": "re2_ob_rf_ml_ranker",
+          "model_type": "rca",
+          "model_version": "re2_ob_rf_ml_ranker",
+          "notes": "Imported from legacy RCA artifact registry.",
+          "rank_score": 0.91647,
+          "run_manifest_path": "",
+          "source_registry": "legacy_rca_model_registry",
+          "status": "candidate",
+          "top_k_default": 3,
+          "trained_at": "",
+          "updated_at": "2026-05-19T12:44:21.514962+00:00"
+        },
+        {
+          "artifact_dir": "feedback_online-boutique_rca_20260519T125952Z",
+          "metrics": {
+            "best_epoch": 34,
+            "best_val_metrics": {
+              "graphs": 15,
+              "mrr": 0.7911111111111111,
+              "per_service": {
+                "checkoutservice": {
+                  "count": 2,
+                  "top1_acc": 1.0,
+                  "top3_acc": 1.0
+                },
+                "currencyservice": {
+                  "count": 4,
+                  "top1_acc": 0.75,
+                  "top3_acc": 1.0
+                },
+                "frontend": {
+                  "count": 3,
+                  "top1_acc": 1.0,
+                  "top3_acc": 1.0
+                },
+                "paymentservice": {
+                  "count": 4,
+                  "top1_acc": 0.5,
+                  "top3_acc": 0.75
+                },
+                "recommendationservice": {
+                  "count": 2,
+                  "top1_acc": 0.0,
+                  "top3_acc": 1.0
+                }
+              },
+              "top1_acc": 0.6666666666666666,
+              "top3_acc": 0.9333333333333333
+            },
+            "config": {
+              "dropout": 0.2,
+              "epochs": 140,
+              "hidden_dim": 48,
+              "lr": 0.001,
+              "patience": 24,
+              "seed": 42,
+              "weight_decay": 0.0001
+            },
+            "data_root": "E:\\mlops_train_handoff\\datasets\\rca_train_dataset",
+            "device": "cpu",
+            "history": [
+              {
+                "epoch": 1,
+                "loss": 1.9430319035754484,
+                "ranking_score": 0.6938888888888889,
+                "val_mrr": 0.5211111111111111,
+                "val_top1": 0.26666666666666666,
+                "val_top3": 0.6666666666666666
+              },
+              {
+                "epoch": 2,
+                "loss": 1.8456638700821821,
+                "ranking_score": 0.7261111111111112,
+                "val_mrr": 0.5522222222222222,
+                "val_top1": 0.26666666666666666,
+                "val_top3": 0.7333333333333333
+              },
+              {
+                "epoch": 3,
+                "loss": 1.7992719096295975,
+                "ranking_score": 0.7327777777777778,
+                "val_mrr": 0.5322222222222223,
+                "val_top1": 0.26666666666666666,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 4,
+                "loss": 1.7910994361428654,
+                "ranking_score": 0.7511111111111111,
+                "val_mrr": 0.5688888888888889,
+                "val_top1": 0.26666666666666666,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 5,
+                "loss": 1.7906737117206348,
+                "ranking_score": 0.8483333333333333,
+                "val_mrr": 0.5966666666666666,
+                "val_top1": 0.3333333333333333,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 6,
+                "loss": 1.7083952812587513,
+                "ranking_score": 0.93,
+                "val_mrr": 0.6266666666666667,
+                "val_top1": 0.4,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 7,
+                "loss": 1.74041089590858,
+                "ranking_score": 0.7788888888888889,
+                "val_mrr": 0.5577777777777778,
+                "val_top1": 0.3333333333333333,
+                "val_top3": 0.6666666666666666
+              },
+              {
+                "epoch": 8,
+                "loss": 1.7084174927543192,
+                "ranking_score": 0.9472222222222224,
+                "val_mrr": 0.6277777777777779,
+                "val_top1": 0.4,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 9,
+                "loss": 1.687897717251497,
+                "ranking_score": 0.9261111111111112,
+                "val_mrr": 0.6188888888888889,
+                "val_top1": 0.4,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 10,
+                "loss": 1.684387743473053,
+                "ranking_score": 0.9122222222222223,
+                "val_mrr": 0.6244444444444445,
+                "val_top1": 0.4,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 11,
+                "loss": 1.67620909038712,
+                "ranking_score": 0.9472222222222224,
+                "val_mrr": 0.6277777777777779,
+                "val_top1": 0.4,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 12,
+                "loss": 1.587997415486504,
+                "ranking_score": 0.9222222222222223,
+                "val_mrr": 0.6111111111111112,
+                "val_top1": 0.4,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 13,
+                "loss": 1.7029806287849651,
+                "ranking_score": 0.8327777777777778,
+                "val_mrr": 0.5988888888888889,
+                "val_top1": 0.3333333333333333,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 14,
+                "loss": 1.6488923132419586,
+                "ranking_score": 0.8388888888888889,
+                "val_mrr": 0.5777777777777778,
+                "val_top1": 0.3333333333333333,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 15,
+                "loss": 1.5781894326210022,
+                "ranking_score": 0.9816666666666667,
+                "val_mrr": 0.63,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 16,
+                "loss": 1.6069732343449312,
+                "ranking_score": 0.9927777777777778,
+                "val_mrr": 0.6522222222222224,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 17,
+                "loss": 1.538060395156636,
+                "ranking_score": 0.9955555555555555,
+                "val_mrr": 0.6577777777777778,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 18,
+                "loss": 1.5425740603138418,
+                "ranking_score": 0.99,
+                "val_mrr": 0.6466666666666666,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 19,
+                "loss": 1.5223138630390167,
+                "ranking_score": 0.9955555555555555,
+                "val_mrr": 0.6577777777777778,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 20,
+                "loss": 1.4328502188710606,
+                "ranking_score": 0.9361111111111112,
+                "val_mrr": 0.638888888888889,
+                "val_top1": 0.4,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 21,
+                "loss": 1.56699919350007,
+                "ranking_score": 1.0455555555555556,
+                "val_mrr": 0.6911111111111111,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 22,
+                "loss": 1.3495027545620413,
+                "ranking_score": 0.8994444444444445,
+                "val_mrr": 0.5988888888888889,
+                "val_top1": 0.4,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 23,
+                "loss": 1.4368583016535814,
+                "ranking_score": 1.1872222222222222,
+                "val_mrr": 0.7411111111111112,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 24,
+                "loss": 1.3011368986438303,
+                "ranking_score": 0.9672222222222222,
+                "val_mrr": 0.6344444444444444,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.7333333333333333
+              },
+              {
+                "epoch": 25,
+                "loss": 1.3532711311298258,
+                "ranking_score": 1.0011111111111113,
+                "val_mrr": 0.6355555555555557,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 26,
+                "loss": 1.4134252299280727,
+                "ranking_score": 0.9944444444444445,
+                "val_mrr": 0.6555555555555554,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 27,
+                "loss": 1.311979386736365,
+                "ranking_score": 1.29,
+                "val_mrr": 0.7799999999999999,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 28,
+                "loss": 1.4274122338084614,
+                "ranking_score": 1.1872222222222222,
+                "val_mrr": 0.7411111111111112,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 29,
+                "loss": 1.2937916210469078,
+                "ranking_score": 0.9955555555555555,
+                "val_mrr": 0.6577777777777778,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8
+              },
+              {
+                "epoch": 30,
+                "loss": 1.536124736070633,
+                "ranking_score": 1.0205555555555557,
+                "val_mrr": 0.6744444444444445,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 31,
+                "loss": 1.3388771090437384,
+                "ranking_score": 1.1872222222222222,
+                "val_mrr": 0.7411111111111112,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 32,
+                "loss": 1.313459183801623,
+                "ranking_score": 1.29,
+                "val_mrr": 0.7799999999999999,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 33,
+                "loss": 1.500124975162394,
+                "ranking_score": 1.29,
+                "val_mrr": 0.7799999999999999,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 34,
+                "loss": 1.3127742869889034,
+                "ranking_score": 1.2955555555555556,
+                "val_mrr": 0.7911111111111111,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 35,
+                "loss": 1.3773605858578402,
+                "ranking_score": 1.2705555555555557,
+                "val_mrr": 0.7744444444444445,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 36,
+                "loss": 1.2321767175898832,
+                "ranking_score": 1.2705555555555557,
+                "val_mrr": 0.7744444444444445,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 37,
+                "loss": 1.1609563209554727,
+                "ranking_score": 1.29,
+                "val_mrr": 0.7799999999999999,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 38,
+                "loss": 1.3739702741012854,
+                "ranking_score": 1.1805555555555554,
+                "val_mrr": 0.7277777777777777,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 39,
+                "loss": 1.3025785303291153,
+                "ranking_score": 1.2066666666666666,
+                "val_mrr": 0.7466666666666666,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 40,
+                "loss": 1.2320783302626188,
+                "ranking_score": 1.1872222222222222,
+                "val_mrr": 0.7411111111111112,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 41,
+                "loss": 1.4577756361926304,
+                "ranking_score": 1.2066666666666666,
+                "val_mrr": 0.7466666666666666,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 42,
+                "loss": 1.3729698601014473,
+                "ranking_score": 1.186111111111111,
+                "val_mrr": 0.7388888888888888,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 43,
+                "loss": 1.4066736378213938,
+                "ranking_score": 1.2761111111111112,
+                "val_mrr": 0.7855555555555556,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 44,
+                "loss": 1.3169461309033281,
+                "ranking_score": 1.1911111111111112,
+                "val_mrr": 0.7488888888888889,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 45,
+                "loss": 1.173140163807308,
+                "ranking_score": 1.0244444444444445,
+                "val_mrr": 0.6822222222222223,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 46,
+                "loss": 1.2257507263737566,
+                "ranking_score": 1.2066666666666666,
+                "val_mrr": 0.7466666666666666,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 47,
+                "loss": 1.226686865748728,
+                "ranking_score": 1.2705555555555557,
+                "val_mrr": 0.7744444444444445,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 48,
+                "loss": 1.0996864863178308,
+                "ranking_score": 1.2066666666666666,
+                "val_mrr": 0.7466666666666666,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 49,
+                "loss": 1.364235769957304,
+                "ranking_score": 1.201111111111111,
+                "val_mrr": 0.7355555555555555,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 50,
+                "loss": 1.3031866574550377,
+                "ranking_score": 1.1927777777777777,
+                "val_mrr": 0.7522222222222222,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 51,
+                "loss": 1.274196937241975,
+                "ranking_score": 1.29,
+                "val_mrr": 0.7799999999999999,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 52,
+                "loss": 1.1999254805200241,
+                "ranking_score": 1.1027777777777779,
+                "val_mrr": 0.7055555555555555,
+                "val_top1": 0.5333333333333333,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 53,
+                "loss": 1.1421787155901684,
+                "ranking_score": 1.2955555555555556,
+                "val_mrr": 0.7911111111111111,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 54,
+                "loss": 1.2436452630688162,
+                "ranking_score": 0.9705555555555556,
+                "val_mrr": 0.6411111111111112,
+                "val_top1": 0.4666666666666667,
+                "val_top3": 0.7333333333333333
+              },
+              {
+                "epoch": 55,
+                "loss": 1.3617088910849655,
+                "ranking_score": 1.1094444444444445,
+                "val_mrr": 0.7188888888888889,
+                "val_top1": 0.5333333333333333,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 56,
+                "loss": 1.3015017207054531,
+                "ranking_score": 1.2122222222222223,
+                "val_mrr": 0.7577777777777778,
+                "val_top1": 0.6,
+                "val_top3": 0.9333333333333333
+              },
+              {
+                "epoch": 57,
+                "loss": 1.219591282088967,
+                "ranking_score": 1.1927777777777777,
+                "val_mrr": 0.7522222222222222,
+                "val_top1": 0.6,
+                "val_top3": 0.8666666666666667
+              },
+              {
+                "epoch": 58,
+                "loss": 1.2349972650408745,
+                "ranking_score": 1.2955555555555556,
+                "val_mrr": 0.7911111111111111,
+                "val_top1": 0.6666666666666666,
+                "val_top3": 0.9333333333333333
+              }
+            ],
+            "skipped_examples": [
+              {
+                "graph_id": "ob_cpu_reco_sevhigh_loadhigh_012__traces_0001__active",
+                "num_nodes": 6,
+                "root_cause_service": "recommendationservice",
+                "run_id": "ob_cpu_reco_sevhigh_loadhigh_012",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_aug_001__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_aug_001",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_aug_002__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_aug_002",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_aug_003__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_aug_003",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_aug_004__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_aug_004",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_sevlow_loadlow_001__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_sevlow_loadlow_001",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_sevlow_loadlow_002__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_sevlow_loadlow_002",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_sevlow_loadlow_003__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_sevlow_loadlow_003",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_kill_checkout_sevlow_loadlow_004__traces_0001__active",
+                "num_nodes": 4,
+                "root_cause_service": "checkoutservice",
+                "run_id": "ob_kill_checkout_sevlow_loadlow_004",
+                "target_index": -1
+              },
+              {
+                "graph_id": "ob_mem_cart_sevhigh_loadhigh_009__traces_0001__active",
+                "num_nodes": 7,
+                "root_cause_service": "cartservice",
+                "run_id": "ob_mem_cart_sevhigh_loadhigh_009",
+                "target_index": -1
+              }
+            ],
+            "skipped_invalid_graphs": 27,
+            "test_graphs": 20,
+            "test_metrics": {
+              "graphs": 20,
+              "mrr": 0.6224999999999999,
+              "per_service": {
+                "checkoutservice": {
+                  "count": 2,
+                  "top1_acc": 1.0,
+                  "top3_acc": 1.0
+                },
+                "currencyservice": {
+                  "count": 4,
+                  "top1_acc": 0.25,
+                  "top3_acc": 1.0
+                },
+                "frontend": {
+                  "count": 3,
+                  "top1_acc": 1.0,
+                  "top3_acc": 1.0
+                },
+                "paymentservice": {
+                  "count": 4,
+                  "top1_acc": 0.5,
+                  "top3_acc": 0.75
+                },
+                "productcatalogservice": {
+                  "count": 3,
+                  "top1_acc": 0.0,
+                  "top3_acc": 0.3333333333333333
+                },
+                "recommendationservice": {
+                  "count": 4,
+                  "top1_acc": 0.0,
+                  "top3_acc": 0.75
+                }
+              },
+              "top1_acc": 0.4,
+              "top3_acc": 0.8
+            },
+            "total_graphs_loaded": 96,
+            "train_graphs": 34,
+            "val_graphs": 15
+          },
+          "model_id": "feedback_online-boutique_rca_20260519T125952Z",
+          "model_name": "feedback_online-boutique_rca_20260519T125952Z",
+          "model_type": "rca",
+          "model_version": "feedback_online-boutique_rca_20260519T125952Z",
+          "notes": "Updated after RCA training.",
+          "rank_score": 0.66675,
+          "run_manifest_path": "feedback_online-boutique_rca_20260519T125952Z/run_manifest.json",
+          "status": "candidate",
+          "trained_at": "2026-05-19T13:00:26.688387+00:00",
+          "updated_at": "2026-05-19T13:00:26.817853+00:00"
+        }
+      ],
+      "model_type": "rca",
+      "previous": [
+        {
+          "artifact_dir": "rca_gat_like",
+          "metrics": {
+            "best_epoch": 34,
+            "best_val_metrics": {
+              "graphs": 15,
+              "mrr": 0.7911111111111111,
+              "top1_acc": 0.6666666666666666,
+              "top3_acc": 0.9333333333333333
+            },
+            "config": {
+              "dropout": 0.2,
+              "epochs": 140,
+              "hidden_dim": 48,
+              "lr": 0.001,
+              "patience": 24,
+              "seed": 42,
+              "weight_decay": 0.0001
+            },
+            "data_root": "E:\\mlops_train_handoff\\datasets\\rca_train_dataset",
+            "device": "cpu",
+            "test_graphs": 20,
+            "test_metrics": {
+              "graphs": 20,
+              "mrr": 0.6224999999999999,
+              "top1_acc": 0.4,
+              "top3_acc": 0.8
+            },
+            "total_graphs_loaded": 96,
+            "train_graphs": 34,
+            "val_graphs": 15
+          },
+          "mlflow_artifact_uri": "mlflow-artifacts:/4/b8fd836903ba47828b6f1003487e9fab/artifacts",
+          "mlflow_experiment_id": "4",
+          "mlflow_experiment_name": "aiops-rca-training",
+          "mlflow_run_id": "b8fd836903ba47828b6f1003487e9fab",
+          "mlflow_tracking_uri": "http://127.0.0.1:5000",
+          "model_id": "rca_gat_like",
+          "model_name": "rca_gat_like",
+          "model_type": "rca",
+          "model_version": "rca_gat_like",
+          "notes": "Archived because the current runtime model definition is incompatible with this checkpoint.",
+          "rank_score": 0.66675,
+          "run_manifest_path": "rca_gat_like/run_manifest.json",
+          "status": "previous",
+          "trained_at": "2026-05-17T06:17:41.114386+00:00",
+          "updated_at": "2026-05-17T06:17:44.270864+00:00"
+        }
+      ],
+      "production": {
+        "artifact_dir": "re2_ob_hgnn_rca",
+        "dataset": "RCAEval RE2-OB",
+        "display_name": "HGNN RCA",
+        "legacy_model_type": "hetero_telemetry_gnn",
+        "metrics": {
+          "best_val_metrics": {
+            "mrr": 1.0,
+            "num_graphs": 15,
+            "top1_acc": 1.0,
+            "top3_acc": 1.0
+          },
+          "test_metrics": {
+            "mrr": 1.0,
+            "num_graphs": 15,
+            "top1_acc": 1.0,
+            "top3_acc": 1.0
+          },
+          "top_k_default": 3
+        },
+        "model_id": "re2_ob_hgnn_rca",
+        "model_name": "re2_ob_hgnn_rca",
+        "model_type": "rca",
+        "model_version": "re2_ob_hgnn_rca",
+        "notes": "Promoted RCA production model.",
+        "rank_score": 1.0,
+        "run_manifest_path": "",
+        "source_registry": "legacy_rca_model_registry",
+        "status": "production",
+        "top_k_default": 3,
+        "trained_at": "",
+        "updated_at": "2026-05-19T12:44:21.514962+00:00"
+      },
+      "system_id": "online-boutique"
+    }
+  },
+  "system_id": "online-boutique"
+}

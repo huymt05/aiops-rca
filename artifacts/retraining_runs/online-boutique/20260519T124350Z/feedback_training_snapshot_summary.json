@@ -1,0 +1,13 @@
+{
+  "by_feedback": {
+    "accepted_incident": 1
+  },
+  "by_system": {
+    "online-boutique": {
+      "accepted_incident": 1
+    }
+  },
+  "output": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\artifacts\\retraining_runs\\online-boutique\\20260519T124350Z\\feedback_training_snapshot.jsonl",
+  "records": 1,
+  "source": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\.tmp_aiops_dashboard\\aiops_dashboard_store.json"
+}

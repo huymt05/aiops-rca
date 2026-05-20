@@ -1,0 +1,38 @@
+[
+  {
+    "artifact_dir": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\re2_ob_hgnn_rca",
+    "comparison_mode": "artifact_metrics_fallback",
+    "error": "index 12 is out of bounds for dimension 0 with size 12",
+    "examples": [],
+    "fault_family_summary": {},
+    "graphs": 15,
+    "model_name": "re2_ob_hgnn_rca",
+    "mrr": 1.0,
+    "top1_acc": 1.0,
+    "topk_acc": 1.0
+  },
+  {
+    "artifact_dir": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\re2_ob_rf_ml_ranker",
+    "comparison_mode": "artifact_metrics_fallback",
+    "error": "X has 12 features, but StandardScaler is expecting 480 features as input.",
+    "examples": [],
+    "fault_family_summary": {},
+    "graphs": 0,
+    "model_name": "re2_ob_rf_ml_ranker",
+    "mrr": 0.9833,
+    "top1_acc": 0.9667,
+    "topk_acc": 1.0
+  },
+  {
+    "artifact_dir": "D:\\HOCTAP\\2025-2026\\HK2\\DACN\\microservices-demo\\data_rca_balanced_v3\\models\\re2_ob_gat_baseline",
+    "comparison_mode": "artifact_metrics_fallback",
+    "error": "mat1 and mat2 shapes cannot be multiplied (7x12 and 480x64)",
+    "examples": [],
+    "fault_family_summary": {},
+    "graphs": 15,
+    "model_name": "re2_ob_gat_baseline",
+    "mrr": 0.9666666666666667,
+    "top1_acc": 0.9333333333333333,
+    "topk_acc": 1.0
+  }
+]

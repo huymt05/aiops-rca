@@ -1,0 +1,42 @@
+services:
+  airflow-standalone:
+    build:
+      context: ../..
+      dockerfile: pipeline/airflow/Dockerfile
+    container_name: aiops-airflow-standalone
+    user: "0:0"
+    environment:
+      AIRFLOW_HOME: /opt/airflow/local-home
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/repo/pipeline/airflow/dags
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIOPS_PYTHON: /usr/local/bin/python
+      PATH: /home/airflow/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+      AIOPS_DASHBOARD_DB_PATH: /opt/airflow/repo/.tmp_aiops_dashboard/airflow_feedback_shadow.sqlite3
+      AIOPS_DASHBOARD_JSON_STORE_PATH: /opt/airflow/repo/.tmp_aiops_dashboard/aiops_dashboard_store.json
+      MLFLOW_TRACKING_URI: http://host.docker.internal:15000
+      NO_PROXY: host.docker.internal,localhost,127.0.0.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "18088:8080"
+    volumes:
+      - ../..:/opt/airflow/repo
+      - E:/mlops_train_handoff:/opt/airflow/handoff
+      - airflow_local_home:/opt/airflow/local-home
+    command:
+      - bash
+      - -lc
+      - >
+        mkdir -p /opt/airflow/local-home/logs
+        /opt/airflow/local-home/dags
+        /opt/airflow/local-home/plugins
+        &&
+        chmod -R 0777 /opt/airflow/local-home
+        &&
+        exec /home/airflow/.local/bin/airflow standalone
+
+volumes:
+  airflow_local_home:

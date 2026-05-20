@@ -1,0 +1,17 @@
+{
+  "system_id": "online-boutique",
+  "anomaly_data_root": "/opt/airflow/handoff/datasets/anomaly_train_dataset",
+  "rca_data_root": "/opt/airflow/handoff/datasets/rca_train_dataset",
+  "anomaly_models_root": "/opt/airflow/repo/data_anomaly_balanced_v3/models",
+  "rca_models_root": "/opt/airflow/repo/data_rca_balanced_v3/models",
+  "enable_mlflow": true,
+  "mlflow_experiment": "aiops-retraining-airflow-handoff",
+  "include_unknown_feedback": false,
+  "anomaly_model_kind": "auto",
+  "anomaly_optimize_for": "anomaly",
+  "anomaly_threshold_bias": 0.0,
+  "rca_device": "cpu",
+  "rca_epochs": 140,
+  "rca_hidden_dim": 48,
+  "rca_patience": 24
+}
