@@ -713,9 +713,34 @@ def get_model_summary(
         "system_id": _normalize_system_id(system_id),
         "model_type": model_type,
         "production": dict(task_block.get("production")) if task_block.get("production") else None,
+        "productions": {
+            str(key): dict(value)
+            for key, value in (task_block.get("productions") or {}).items()
+            if isinstance(value, dict)
+        },
         "previous": [dict(item) for item in (task_block.get("previous") or [])],
         "candidates": [dict(item) for item in (task_block.get("candidates") or [])],
     }
+
+
+
+def _infer_rca_model_key(entry: dict[str, Any]) -> str:
+    explicit = str(entry.get("model_key") or "").strip()
+    if explicit:
+        return explicit
+
+    display_name = str(entry.get("display_name") or "").strip().lower()
+    legacy_type = str(entry.get("legacy_model_type") or "").strip().lower()
+    model_name = str(entry.get("model_name") or entry.get("model_id") or "").strip().lower()
+
+    if "rf ml ranker" in display_name or "random_forest_service_ranker" in legacy_type or "rf_ml_ranker" in model_name:
+        return "rf_ml_ranker"
+    if "gat baseline" in display_name or "simple_graph_attention" in legacy_type or "gat" in model_name:
+        return "gat_baseline"
+    if "hgnn rca" in display_name or "hetero_telemetry_gnn" in legacy_type or "hgnn" in model_name:
+        return "hgnn_rca"
+
+    return "default"
 
 
 def promote_model(
@@ -771,6 +796,15 @@ def promote_model(
     production["promoted_by"] = promoted_by
     production["notes"] = notes or f"Promoted from candidate for {system_id}/{model_type}."
     production["updated_at"] = now_iso()
+
+    if model_type == "rca":
+        model_key = _infer_rca_model_key(production)
+        production["model_key"] = model_key
+
+        productions = dict(task_block.get("productions") or {})
+        productions[model_key] = dict(production)
+        task_block["productions"] = productions
+
     task_block["production"] = production
 
     task_block["candidates"] = [

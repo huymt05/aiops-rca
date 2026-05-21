@@ -124,6 +124,31 @@ def _registry_from_summary() -> tuple[str, dict[str, ModelRegistryEntry]] | None
         model_type="rca",
         task="rca",
     )
+
+    productions = summary.get("productions") or {}
+    if isinstance(productions, dict) and productions:
+        registry: dict[str, ModelRegistryEntry] = {}
+        for model_key, record in productions.items():
+            if not isinstance(record, dict):
+                continue
+            artifact_dir = Path(str(record.get("artifact_dir") or model_key).strip())
+            if not artifact_dir.is_absolute():
+                artifact_dir = (DEFAULT_MODEL_ROOT / artifact_dir).resolve()
+            label = str(record.get("display_name") or record.get("model_name") or model_key).strip() or model_key
+            registry[str(model_key)] = ModelRegistryEntry(
+                model_key=str(model_key),
+                artifact_dir=artifact_dir,
+                label=label,
+            )
+
+        if registry:
+            default_key = str(
+                os.environ.get("AIOPS_RCA_DEFAULT_MODEL_KEY", "")
+            ).strip() or next(iter(registry.keys()))
+            if default_key not in registry:
+                default_key = next(iter(registry.keys()))
+            return default_key, registry
+
     records: list[dict[str, Any]] = []
     if isinstance(summary.get("production"), dict):
         records.append(summary["production"])
@@ -135,7 +160,8 @@ def _registry_from_summary() -> tuple[str, dict[str, ModelRegistryEntry]] | None
     default_key: str | None = None
     for record in records:
         model_key = str(
-            record.get("model_id")
+            record.get("model_key")
+            or record.get("model_id")
             or record.get("model_name")
             or Path(str(record.get("artifact_dir") or "")).name
             or "rca_model"
@@ -143,14 +169,13 @@ def _registry_from_summary() -> tuple[str, dict[str, ModelRegistryEntry]] | None
         artifact_dir = Path(str(record.get("artifact_dir") or model_key).strip())
         if not artifact_dir.is_absolute():
             artifact_dir = (DEFAULT_MODEL_ROOT / artifact_dir).resolve()
-        label = str(record.get("model_name") or model_key).strip() or model_key
+        label = str(record.get("display_name") or record.get("model_name") or model_key).strip() or model_key
         registry[model_key] = ModelRegistryEntry(model_key=model_key, artifact_dir=artifact_dir, label=label)
         if record.get("status") == "production" and default_key is None:
             default_key = model_key
 
     default_key = default_key or next(iter(registry.keys()))
     return default_key, registry
-
 
 def load_model_registry(default_artifact_dir: Path | None = None) -> tuple[str, dict[str, ModelRegistryEntry]]:
     artifact_dir = Path(default_artifact_dir or DEFAULT_ARTIFACT_DIR)
