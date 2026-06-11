@@ -171,7 +171,7 @@ jobs:
 
       - name: Run SonarQube scan when configured
         if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
@@ -204,3 +204,4 @@ jobs:
       - name: Skip Snyk Code scan when token is missing
         if: ${{ env.SNYK_TOKEN == '' }}
         run: echo "Skipping Snyk Code scan because SNYK_TOKEN is not configured."
+

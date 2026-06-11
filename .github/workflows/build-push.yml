@@ -58,7 +58,7 @@ jobs:
 
       - name: Run SonarQube scan when configured
         if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
@@ -280,3 +280,4 @@ jobs:
           fi
           git commit -m "chore(gitops): update aiops dev images to ${{ needs.prepare.outputs.image_tag }}"
           git push
+
