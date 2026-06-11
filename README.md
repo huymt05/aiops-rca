@@ -405,3 +405,5 @@ To activate the full code-scanning stage in GitHub Actions, configure these repo
 - Secret: `SNYK_TOKEN`
 
 Detailed setup instructions are available in `docs/ci-cd-setup.md`.
+ 
+ 
