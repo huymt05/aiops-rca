@@ -161,16 +161,20 @@ jobs:
   code-scan:
     runs-on: ubuntu-latest
     needs: validate-and-test
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Run SonarQube scan when configured
-        if: ${{ secrets.SONAR_TOKEN != '' && vars.SONAR_HOST_URL != '' }}
+        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
         uses: SonarSource/sonarqube-scan-action@v5
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
         with:
           args: >-
             -Dsonar.projectKey=aiops-rca
@@ -178,25 +182,25 @@ jobs:
             -Dsonar.python.version=3.11
 
       - name: Skip SonarQube scan when secrets are missing
-        if: ${{ !(secrets.SONAR_TOKEN != '' && vars.SONAR_HOST_URL != '') }}
+        if: ${{ !(env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '') }}
         run: echo "Skipping SonarQube scan because SONAR_TOKEN or SONAR_HOST_URL is not configured."
 
       - name: Set up Node.js for Snyk CLI
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install Snyk CLI
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' }}
         run: npm install -g snyk
 
       - name: Run Snyk Code scan when configured
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: ${{ env.SNYK_TOKEN != '' }}
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
         run: snyk code test --severity-threshold=high
 
       - name: Skip Snyk Code scan when token is missing
-        if: ${{ secrets.SNYK_TOKEN == '' }}
+        if: ${{ env.SNYK_TOKEN == '' }}
         run: echo "Skipping Snyk Code scan because SNYK_TOKEN is not configured."
