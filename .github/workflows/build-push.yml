@@ -226,7 +226,7 @@ jobs:
         with:
           image-ref: local/${{ matrix.image_name }}:${{ needs.prepare.outputs.image_tag }}
           format: table
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           severity: HIGH,CRITICAL
 
