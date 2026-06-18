@@ -1,4 +1,4 @@
-﻿apiVersion: v1
+apiVersion: v1
 kind: Namespace
 metadata:
   name: app
@@ -392,7 +392,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: checkoutservice
         - name: ENABLE_TRACING
@@ -461,7 +461,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: currencyservice
         - name: ENABLE_TRACING
@@ -522,7 +522,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: emailservice
         - name: ENABLE_TRACING
@@ -588,7 +588,7 @@ spec:
         - name: ENABLE_TRACING
           value: "1"
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: frontend
         - name: PORT
@@ -754,7 +754,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: paymentservice
         - name: ENABLE_TRACING
@@ -814,7 +814,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: productcatalogservice
         - name: ENABLE_TRACING
@@ -874,7 +874,7 @@ spec:
       containers:
       - env:
         - name: COLLECTOR_SERVICE_ADDR
-          value: jaeger.observability.svc.cluster.local:4317
+          value: opentelemetrycollector.app.svc.cluster.local:4317
         - name: OTEL_SERVICE_NAME
           value: recommendationservice
         - name: ENABLE_TRACING
@@ -1027,3 +1027,4 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
       serviceAccountName: shippingservice
+

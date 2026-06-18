@@ -10,6 +10,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: frontend-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -23,6 +25,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: checkoutservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,6 +40,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: currencyservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -49,6 +55,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: emailservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -62,6 +70,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: paymentservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,6 +85,8 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: productcatalogservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,3 +100,5 @@ spec:
         env:
         - name: OTEL_SERVICE_NAME
           value: recommendationservice-staging
+        - name: COLLECTOR_SERVICE_ADDR
+          value: opentelemetrycollector.app.svc.cluster.local:4317

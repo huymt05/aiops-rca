@@ -17,7 +17,7 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "checkoutservice"
             - name: ENABLE_TRACING
@@ -34,7 +34,7 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "currencyservice"
             - name: ENABLE_TRACING
@@ -53,7 +53,7 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "emailservice"
             - name: ENABLE_TRACING
@@ -74,7 +74,7 @@ patches:
             - name: ENABLE_TRACING
               value: "1"
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "frontend"
             - name: ENV_PLATFORM
@@ -91,7 +91,7 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "paymentservice"
             - name: ENABLE_TRACING
@@ -110,7 +110,7 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "productcatalogservice"
             - name: ENABLE_TRACING
@@ -129,10 +129,11 @@ patches:
           - name: server
             env:
             - name: COLLECTOR_SERVICE_ADDR
-              value: "jaeger.observability.svc.cluster.local:4317"
+              value: "opentelemetrycollector.app.svc.cluster.local:4317"
             - name: OTEL_SERVICE_NAME
               value: "recommendationservice"
             - name: ENABLE_TRACING
               value: "1"
             - name: DISABLE_PROFILER
               value: "1"
+

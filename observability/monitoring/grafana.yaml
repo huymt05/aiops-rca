@@ -1,0 +1,220 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiops-grafana-datasources
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus.monitoring.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiops-grafana-dashboard-provider
+  namespace: monitoring
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: AIOps
+        orgId: 1
+        folder: AIOps
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiops-grafana-dashboard-aiops-observability
+  namespace: monitoring
+data:
+  aiops-observability.json: |
+    {
+      "uid": "aiops-observability",
+      "title": "AIOps Observability Overview",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Prometheus Targets Up",
+          "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "sum(up)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Targets Down",
+          "gridPos": {"h": 5, "w": 6, "x": 6, "y": 0},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "sum(up == 0)",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Active Alerts",
+          "gridPos": {"h": 5, "w": 6, "x": 12, "y": 0},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "sum(ALERTS{alertstate=\"firing\"})",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Scrape Samples / Sec",
+          "gridPos": {"h": 5, "w": 6, "x": 18, "y": 0},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "sum(rate(prometheus_tsdb_head_samples_appended_total[5m]))",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Target Health by Job",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "sum by (job) (up)",
+              "legendFormat": "{{job}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Prometheus Scrape Duration",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "max by (job) (scrape_duration_seconds)",
+              "legendFormat": "{{job}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "table",
+          "title": "Discovered Prometheus Targets",
+          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 13},
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "Prometheus"},
+              "expr": "up",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiops-grafana
+  namespace: monitoring
+  labels:
+    app: aiops-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aiops-grafana
+  template:
+    metadata:
+      labels:
+        app: aiops-grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.2.0
+          ports:
+            - name: web
+              containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: datasources
+          configMap:
+            name: aiops-grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: aiops-grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: aiops-grafana-dashboard-aiops-observability
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aiops-grafana
+  namespace: monitoring
+spec:
+  selector:
+    app: aiops-grafana
+  ports:
+    - name: web
+      port: 3000
+      targetPort: 3000
