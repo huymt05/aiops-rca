@@ -1,0 +1,13 @@
+[
+  { "service_name": "web", "service_role": "entrypoint", "service_tier": "edge", "criticality": "high", "is_entrypoint": 1, "is_stateful": 0 },
+  { "service_name": "catalogue", "service_role": "catalog", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "user", "service_role": "user", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "cart", "service_role": "cart", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "shipping", "service_role": "shipping", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "payment", "service_role": "payment", "service_tier": "backend", "criticality": "high", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "ratings", "service_role": "ratings", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "dispatch", "service_role": "worker", "service_tier": "backend", "criticality": "medium", "is_entrypoint": 0, "is_stateful": 0 },
+  { "service_name": "mongodb", "service_role": "database", "service_tier": "data", "criticality": "high", "is_entrypoint": 0, "is_stateful": 1 },
+  { "service_name": "rabbitmq", "service_role": "message-broker", "service_tier": "data", "criticality": "high", "is_entrypoint": 0, "is_stateful": 1 },
+  { "service_name": "mysql", "service_role": "database", "service_tier": "data", "criticality": "high", "is_entrypoint": 0, "is_stateful": 1 }
+]
