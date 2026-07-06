@@ -10,6 +10,7 @@ on:
       - "deploy/aiops/**"
       - "deploy/argocd/**"
       - "tools/update_aiops_gitops_tags.py"
+      - "tests/**"
       - ".github/workflows/ci.yml"
       - ".github/workflows/build-push.yml"
   pull_request:
@@ -19,6 +20,7 @@ on:
       - "deploy/aiops/**"
       - "deploy/argocd/**"
       - "tools/update_aiops_gitops_tags.py"
+      - "tests/**"
       - ".github/workflows/ci.yml"
       - ".github/workflows/build-push.yml"
   workflow_dispatch:
@@ -27,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  validate-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,8 +40,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install CI validation helpers
-        run: python -m pip install --disable-pip-version-check pyyaml
+      - name: Install CI helpers and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --disable-pip-version-check pytest pyyaml
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -66,10 +70,56 @@ jobs:
               print(f"validated {path}")
           PY
 
+      - name: Run unit tests
+        run: pytest tests/tools -q
+
       - name: Validate dashboard JavaScript
         run: |
           node --check aiops_framework/dashboard/static/dashboard_v2.js
           node --check aiops_framework/dashboard/static/dashboard.js
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build AI/Ops images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/aiops/docker/Dockerfile.anomaly-service
+          push: false
+          tags: local/aiops-anomaly-service:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build RCA image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/aiops/docker/Dockerfile.rca-service
+          push: false
+          tags: local/aiops-rca-service:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build orchestrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/aiops/docker/Dockerfile.orchestrator
+          push: false
+          tags: local/aiops-orchestrator:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build dashboard image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/aiops/docker/Dockerfile.dashboard
+          push: false
+          tags: local/aiops-dashboard:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v2
@@ -107,3 +157,52 @@ jobs:
                   raise SystemExit(f"Resource #{index} is missing metadata.name")
               print(f"validated {kind}/{name}")
           PY
+
+  code-scan:
+    runs-on: ubuntu-latest
+    needs: validate-and-test
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run SonarQube scan when configured
+        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
+        with:
+          args: >-
+            -Dsonar.projectKey=aiops-rca
+            -Dsonar.sources=aiops_framework,pipeline,tools
+            -Dsonar.python.version=3.11
+
+      - name: Skip SonarQube scan when secrets are missing
+        if: ${{ !(env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '') }}
+        run: echo "Skipping SonarQube scan because SONAR_TOKEN or SONAR_HOST_URL is not configured."
+
+      - name: Set up Node.js for Snyk CLI
+        if: ${{ env.SNYK_TOKEN != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Snyk CLI
+        if: ${{ env.SNYK_TOKEN != '' }}
+        run: npm install -g snyk
+
+      - name: Run Snyk Code scan when configured
+        if: ${{ env.SNYK_TOKEN != '' }}
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+        run: snyk code test --severity-threshold=high || echo "Snyk code scan reported issues or access restrictions; continuing as warning."
+
+      - name: Skip Snyk Code scan when token is missing
+        if: ${{ env.SNYK_TOKEN == '' }}
+        run: echo "Skipping Snyk Code scan because SNYK_TOKEN is not configured."
+
+

@@ -1,24 +1,27 @@
-system_id: online-boutique-staging
+system_id: robot_shop
+name: Robot Shop
 system_family: ecommerce
-display_name: Online Boutique Staging
-namespace: online-boutique-staging
+display_name: Robot Shop
+namespace: robot-shop
 
 entry_services:
-  - frontend
+  - web
 
 jaeger_services:
-  - frontend
-  - checkoutservice
-  - currencyservice
-  - recommendationservice
-  - productcatalogservice
-  - cartservice
-  - shippingservice
-  - paymentservice
-  - emailservice
+  - web
+  - catalogue
+  - user
+  - cart
+  - shipping
+  - payment
+  - ratings
+  - dispatch
+  - mongodb
+  - rabbitmq
+  - mysql
 
 prometheus_labels:
-  namespace: online-boutique-staging
+  namespace: robot-shop
 
 model_profile:
   anomaly:

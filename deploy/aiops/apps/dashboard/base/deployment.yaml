@@ -42,7 +42,7 @@ spec:
             - name: AIOPS_LIVE_SOURCE_SERVICE
               value: frontend
             - name: AIOPS_LIVE_SYSTEM_ID
-              value: online-boutique
+              value: online-boutique-staging
             - name: AIOPS_LIVE_MIN_SERVICE_COVERAGE
               value: "0.70"
             - name: AIOPS_LIVE_COVERAGE_BYPASS_SCORE

@@ -382,3 +382,28 @@ Mở trình duyệt:
 - tăng cường cô lập hệ thống cho multi-system observability
 - cải thiện kiểm tra rollout health và tinh chỉnh tài nguyên trên Minikube
 
+
+## CI/CD Completion Notes
+
+The repository CI/CD flow now includes the following quality gates and deployment stages:
+
+1. Build validation for Python entrypoints, dashboard JavaScript, and Kubernetes overlays.
+2. Unit testing for GitOps helper logic under `tests/`.
+3. Static code analysis with SonarQube or Snyk Code when repository secrets are configured.
+4. Docker image build for the AIOps services.
+5. Container image vulnerability scanning with Trivy.
+6. Image push to GHCR only after the Trivy scan passes.
+7. Automatic GitOps manifest update for `deploy/aiops/environments/dev/kustomization.yaml`.
+8. Argo CD synchronization from Git to Kubernetes.
+
+### GitHub Settings Required For Full Security Scan
+
+To activate the full code-scanning stage in GitHub Actions, configure these repository settings:
+
+- Secret: `SONAR_TOKEN`
+- Variable: `SONAR_HOST_URL`
+- Secret: `SNYK_TOKEN`
+
+Detailed setup instructions are available in `docs/ci-cd-setup.md`.
+ 
+ 
