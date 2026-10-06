@@ -120,6 +120,35 @@ class ScaleToZeroFault:
             timeout=timeout,
         )
 
+    def _wait_until_scaled_down(self) -> None:
+        deadline = time.monotonic() + self.rollout_timeout
+        while time.monotonic() < deadline:
+            result = self._kubectl(
+                "get",
+                "deployment",
+                self.deployment,
+                "-o",
+                "json",
+            )
+            payload = json.loads(result.stdout)
+            metadata = payload.get("metadata") or {}
+            spec = payload.get("spec") or {}
+            status = payload.get("status") or {}
+            generation = int(metadata.get("generation") or 0)
+            observed_generation = int(status.get("observedGeneration") or 0)
+            replicas = max(
+                int(spec.get("replicas") or 0),
+                int(status.get("replicas") or 0),
+                int(status.get("readyReplicas") or 0),
+                int(status.get("availableReplicas") or 0),
+            )
+            if replicas == 0 and observed_generation >= generation:
+                return
+            time.sleep(1)
+        raise TimeoutError(
+            f"deployment/{self.deployment} did not reach zero ready replicas within {self.rollout_timeout}s"
+        )
+
     def __enter__(self) -> "ScaleToZeroFault":
         result = self._kubectl(
             "get",
@@ -139,6 +168,7 @@ class ScaleToZeroFault:
                 f"deployment/{self.deployment} already has {self.original_replicas} replicas; refusing to inject the fault"
             )
         self._kubectl("scale", f"deployment/{self.deployment}", "--replicas=0")
+        self._wait_until_scaled_down()
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> bool:

@@ -1,3 +1,4 @@
+import json
 import subprocess
 
 import pytest
@@ -10,7 +11,18 @@ def test_scale_fault_restores_original_replicas_after_failure():
 
     def runner(command, timeout=None):
         commands.append(command)
-        stdout = "2" if "get" in command else ""
+        if "jsonpath={.spec.replicas}" in command:
+            stdout = "2"
+        elif command[-1] == "json":
+            stdout = json.dumps(
+                {
+                    "metadata": {"generation": 2},
+                    "spec": {"replicas": 0},
+                    "status": {"observedGeneration": 2},
+                }
+            )
+        else:
+            stdout = ""
         return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
     fault = ScaleToZeroFault(
@@ -26,6 +38,7 @@ def test_scale_fault_restores_original_replicas_after_failure():
             raise RuntimeError("analysis failed")
 
     assert ["kubectl", "-n", "sock-shop", "scale", "deployment/payment", "--replicas=0"] in commands
+    assert ["kubectl", "-n", "sock-shop", "get", "deployment", "payment", "-o", "json"] in commands
     assert ["kubectl", "-n", "sock-shop", "scale", "deployment/payment", "--replicas=2"] in commands
     assert ["kubectl", "-n", "sock-shop", "rollout", "status", "deployment/payment", "--timeout=30s"] in commands
 
